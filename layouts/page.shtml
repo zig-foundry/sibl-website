@@ -1,34 +1,27 @@
 <extend template="base.shtml">
 <title id="title" :text="$page.title"></title>
-<head id="head"></head>
-<div id="content">
+<head id="head">
 	<style>
-		h3.overtitle {
-			margin-bottom: 0;
-		}
+		h3.overtitle { margin-bottom: 0; color: #f7a41d; }
 		h1.title {
-			margin-top: 0;
-		}
-		
-		#page h1, #page h2 {
+			margin-top: 0.25rem;
+			border-left: 3px solid #f7a41d;
+			padding-left: 0.75rem;
 			text-align: left;
 		}
-		
+		#page h1, #page h2 { text-align: left; }
 		#page h1 {
 			font-size: 1.7rem;
-			border-bottom: 1px dashed #aaa;
+			border-bottom: 1px dashed #444;
 			margin-top: 2em;
 		}
-		
-		#page h2 {
-			font-size: 1.5rem;
-		}
-		
-		#page h3 {
-			font-size: 1rem;
-		}
+		#page h2 { font-size: 1.5rem; margin-top: 1.75rem; }
+		#page h3 { font-size: 1.1rem; }
+		#page { margin-top: 0.5rem; }
 	</style>
-	<h3 class="overtitle centered">SIBL</h3>
+</head>
+<div id="content">
+	<h3 class="overtitle centered"><i class="fa-solid fa-book"></i> SIBL Docs</h3>
 	<h1 class="title" :text="$page.title"></h1>
 	<div id="page" :html="$page.content()"></div>
 </div>

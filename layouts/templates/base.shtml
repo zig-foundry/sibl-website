@@ -11,20 +11,25 @@
 		<link rel="stylesheet" type="text/css" href="$site.asset('fonts.css').link()">
 		<link rel="stylesheet" type="text/css" href="$site.asset('style.css').link()">
 		<link rel="stylesheet" type="text/css" href="$site.asset('highlight.css').link()">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
 		<super>
 	</head>
 	<body>
 		<nav id="menu" class="centered">
-			<a href="/">Home</a>
+			<a href="/"><i class="fa-solid fa-link"></i> Home</a>
 			•
-			<a href="$site.page('getting-started').link()">Getting Started</a>
+			<a href="$site.page('getting-started').link()"><i class="fa-solid fa-book"></i> Getting Started</a>
 			•
-			<a href="https://github.com/zig-foundry/sibl" target="_blank">GitHub</a>
+			<a href="https://github.com/zig-foundry/sibl" target="_blank"><i class="fa-brands fa-github"></i> GitHub</a>
 			•
-			<a href="https://github.com/zig-foundry/sibl/blob/main/ROADMAP.md" target="_blank">Roadmap</a>
+			<a href="https://github.com/zig-foundry/sibl/blob/main/ROADMAP.md" target="_blank"><i class="fa-solid fa-map"></i> Roadmap</a>
 		</nav>
 		<div id="content">
 			<super>
 		</div>
+		<footer class="site-footer">
+			<p>SIBL • Zig 0.17 • Open source</p>
+			<p><a href="https://github.com/zig-foundry/sibl" target="_blank"><i class="fa-brands fa-github"></i> View on GitHub</a></p>
+		</footer>
 	</body>
 </html>
