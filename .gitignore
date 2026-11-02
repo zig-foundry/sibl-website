@@ -1,0 +1,24 @@
+# Zine build output
+public/
+
+# Zig / Zine caches
+.zig-cache/
+zig-out/
+*.o
+*.a
+
+# Editor / OS
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# Local env / secrets
+.env
+.env.local
+
+# Optional: keep if you generate docs elsewhere
+# docs/
+

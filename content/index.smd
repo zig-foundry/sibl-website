@@ -1,0 +1,9 @@
+---
+.title = "Home",
+.date = .date("2026-11-02T00:00:00"),
+.layout = "index.shtml",
+---
+
+# SIBL
+
+Something is Better Linker.

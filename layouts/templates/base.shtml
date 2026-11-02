@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head id="head">
+		<meta charset="UTF-8">
+		<meta name="description" content="SIBL – Something is Better Linker. A fast, lightweight, zero-dependency static and dynamic linker written in Zig.">
+		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, shrink-to-fit=no">
+		<title id="title">
+			<super>
+			- SIBL
+		</title>
+		<link rel="stylesheet" type="text/css" href="$site.asset('fonts.css').link()">
+		<link rel="stylesheet" type="text/css" href="$site.asset('style.css').link()">
+		<link rel="stylesheet" type="text/css" href="$site.asset('highlight.css').link()">
+		<super>
+	</head>
+	<body>
+		<nav id="menu" class="centered">
+			<a href="/">Home</a>
+			•
+			<a href="$site.page('getting-started').link()">Getting Started</a>
+			•
+			<a href="https://github.com/zig-foundry/sibl" target="_blank">GitHub</a>
+			•
+			<a href="https://github.com/zig-foundry/sibl/blob/main/ROADMAP.md" target="_blank">Roadmap</a>
+		</nav>
+		<div id="content">
+			<super>
+		</div>
+	</body>
+</html>
