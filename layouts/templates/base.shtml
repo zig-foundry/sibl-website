@@ -16,13 +16,16 @@
 	</head>
 	<body>
 		<nav id="menu" class="centered">
-			<a href="/"><i class="fa-solid fa-link"></i> Home</a>
-			•
-			<a href="$site.page('getting-started').link()"><i class="fa-solid fa-book"></i> Getting Started</a>
-			•
-			<a href="https://github.com/zig-foundry/sibl" target="_blank"><i class="fa-brands fa-github"></i> GitHub</a>
-			•
-			<a href="https://github.com/zig-foundry/sibl/blob/main/ROADMAP.md" target="_blank"><i class="fa-solid fa-map"></i> Roadmap</a>
+			<div class="nav-row">
+				<a href="/">Home</a>
+				<span class="sep">•</span>
+				<a href="$site.page('getting-started').link()">Documentation</a>
+			</div>
+			<div class="nav-row">
+				<a href="https://github.com/zig-foundry/sibl" target="_blank">GitHub</a>
+				<span class="sep">•</span>
+				<a href="https://github.com/zig-foundry/sibl/blob/main/ROADMAP.md" target="_blank">Roadmap</a>
+			</div>
 		</nav>
 		<div id="content">
 			<super>
