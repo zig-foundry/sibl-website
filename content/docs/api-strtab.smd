@@ -1,0 +1,66 @@
+---
+.title = "strtab module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# strtab module
+
+The `strtab` module reads existing string tables and builds new deduplicated ones.
+
+## Types
+
+### `StringTableReader`
+
+Zero-copy reader for a string table.
+
+Fields:
+
+- `data`: raw table bytes.
+
+Nested error set:
+
+- `ReadError`: `OutOfBounds`, `MissingNullTerminator`.
+
+Methods:
+
+- `init(data)`: create a reader.
+- `get(offset)`: return the null-terminated string at an offset.
+- `isEmptyAt(offset)`: return true if the offset points to an empty string.
+- `iterator()`: walk every string in the table.
+
+Nested iterator:
+
+- `Iterator.Entry`: `offset` and `string`.
+- `next()`: return the next valid entry or null.
+
+### `StringTableBuilder`
+
+Builder for a deduplicated output string table.
+
+Methods:
+
+- `init(allocator)`: create an empty builder.
+- `deinit(self, allocator)`: free builder memory.
+- `insert(allocator, str)`: insert a string and return its offset. Duplicate strings reuse the old offset.
+- `getBytes(self)`: return the final table bytes.
+- `size(self)`: return the current table size.
+
+## Example
+
+```zig
+var builder = try sibl.StringTableBuilder.init(allocator);
+defer builder.deinit(allocator);
+
+const off1 = try builder.insert(allocator, "main");
+const off2 = try builder.insert(allocator, "main");
+// off1 == off2
+
+const bytes = builder.getBytes();
+```
+
+## Notes
+
+- The reader does not own the input bytes.
+- The builder owns the bytes it returns through `getBytes`.
+- Offsets are byte offsets from the start of the table.

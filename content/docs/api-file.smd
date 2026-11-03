@@ -1,0 +1,47 @@
+---
+.title = "file module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# file module
+
+The `file` module maps an input file into memory for zero-copy reads.
+
+## Type
+
+### `MappedFile`
+
+A file mapped into memory.
+
+Fields:
+
+- `data`: `[]const u8`
+- `size`: `usize`
+- `map`: optional memory map handle
+
+Nested error set:
+
+- `OpenError`: `FileTooBig`, `FileNotFound`, `AccessDenied`, `OutOfMemory`, `SystemResources`, `Unexpected`.
+
+Methods:
+
+- `open(io, file_path)`: open and map a file. Empty files return an empty slice with no mapping.
+- `deinit(self, io)`: unmap the file and clear the slice. Safe to call when no mapping exists.
+
+## Example
+
+```zig
+var mapped = try sibl.MappedFile.open(io, "hello.o");
+defer mapped.deinit(io);
+
+if (mapped.data.len >= 4 and std.mem.eql(u8, mapped.data[0..4], &sibl.elf.MAGIC)) {
+    // parse as ELF
+}
+```
+
+## Notes
+
+- Both absolute and relative paths work.
+- Close the file handle inside `open`; the mapping stays valid.
+- Call `deinit` before the mapping goes out of scope.

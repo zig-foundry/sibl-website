@@ -1,0 +1,71 @@
+---
+.title = "API Reference",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# API Reference
+
+This page is the entry point for the sibl library API. sibl is a Zig package. You import it with `@import("sibl")`. The root module re-exports every public type and function from `src/root.zig`.
+
+## How to import sibl
+
+Add sibl as a dependency in your `build.zig.zon`, then import the module:
+
+```zig
+const sibl = @import("sibl");
+```
+
+All public types are available on this namespace. For example:
+
+```zig
+var table = sibl.SymbolTable.init(allocator);
+defer table.deinit();
+
+var layout = sibl.Layout.init(allocator, 0x400000, 4096);
+defer layout.deinit();
+```
+
+## Modules
+
+| Module | What it does | Page |
+| --- | --- | --- |
+| `alloc` | Arena allocator and scratch buffer | [alloc](/docs/api-alloc) |
+| `args` | CLI flag parsing and options | [args](/docs/api-args) |
+| `target` | Target detection and page size | [target](/docs/api-target) |
+| `file` | Memory-mapped file reader | [file](/docs/api-file) |
+| `elf` | ELF parsing | [elf](/docs/api-elf) |
+| `strtab` | String table reader and builder | [strtab](/docs/api-strtab) |
+| `coff` | PE and COFF parsing | [coff](/docs/api-coff) |
+| `macho` | Mach-O parsing | [macho](/docs/api-macho) |
+| `archive` | Static archive parsing | [archive](/docs/api-archive) |
+| `symbol` | Global symbol table | [symbol](/docs/api-symbol) |
+| `layout` | Section grouping and address layout | [layout](/docs/api-layout) |
+| `reloc` | Relocation engine | [reloc](/docs/api-reloc) |
+| `entry` | Entry point resolution | [entry](/docs/api-entry) |
+| `rules` | Section placement rules | [rules](/docs/api-rules) |
+| `defsym` | `--defsym` symbol assignment | [defsym](/docs/api-defsym) |
+| `templates` | Default layout templates | [templates](/docs/api-templates) |
+
+## Common flow
+
+A typical link pass uses these steps:
+
+1. Parse arguments with `sibl.parseArgs`.
+2. Detect the target with `sibl.TargetInfo.detect`.
+3. Open input files with `sibl.MappedFile.open`.
+4. Parse each file with `elf`, `coff`, `macho`, or `archive`.
+5. Add symbols to a `sibl.SymbolTable`.
+6. Add sections to a `sibl.Layout`.
+7. Apply placement rules, `--defsym`, and a template.
+8. Call `layout.computeAddresses`, `layout.buildSegments`, and `layout.accountSizes`.
+9. Resolve the entry point with `sibl.resolveEntry`.
+10. Apply relocations with `sibl.applyReloc` or `sibl.resolveAndApplyRelocs`.
+
+## Error handling
+
+Most functions return an error union. sibl uses Zig error sets. You can use `try` and let the error move up, or handle it with a `switch`. The main executable shows this pattern.
+
+## Memory management
+
+sibl uses explicit allocators. The `LinkerAllocators` type wraps an arena for bulk data and a base allocator for structures that need manual resizing. Call `deinit` on `LinkerAllocators`, `Options`, `Layout`, `SymbolTable`, `MappedFile`, and output sections when you are done.

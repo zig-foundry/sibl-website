@@ -1,0 +1,80 @@
+---
+.title = "args module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# args module
+
+The `args` module parses command-line flags into an `Options` value. It stores slices and does not copy strings.
+
+## Types
+
+### `TargetFormat`
+
+Requested output format.
+
+Values: `auto`, `elf`, `coff`, `macho`.
+
+- `fromString(str)`: parse `"elf"`, `"coff"`, `"pe"`, `"macho"`, or `"auto"`. Returns null for unknown text.
+
+### `Emulation`
+
+Emulation mode used by GNU ld style flags.
+
+Values: `unspecified`, `elf_x86_64`, `elf_aarch64`, `elf_riscv64`, `pe_x86_64`, `pe_aarch64`.
+
+- `fromString(str)`: parse values like `"elf_x86_64"`, `"aarch64elf"`, `"elf_aarch64"`, `"elf64lriscv"`, and `"i386pep"`.
+
+### `Options`
+
+All collected CLI settings.
+
+Important fields:
+
+- `output_path`: output file name, default `"a.out"`.
+- `entry_symbol`: entry symbol name, default `"_start"`.
+- `target_format`: `TargetFormat`, default `auto`.
+- `emulation`: `Emulation`, default `unspecified`.
+- `is_shared`: build a shared library.
+- `is_static`: request static linking.
+- `strip_all`: strip all symbols.
+- `strip_debug`: strip debug sections.
+- `input_files`: list of input files.
+- `lib_dirs`: library search directories.
+- `libs`: library names.
+- `place_specs`: raw `--place` specs.
+- `pin_specs`: raw `--pin` specs.
+- `region_specs`: raw `--region` specs.
+- `defsym_specs`: raw `--defsym` specs.
+- `format_specs`: not used for extra data.
+
+Methods:
+
+- `deinit(self, allocator)`: free owned lists.
+
+### `ParseError`
+
+Errors from parsing.
+
+Values: `MissingValue`, `InvalidFormat`, `InvalidEmulation`, `UnknownOption`, `OutOfMemory`.
+
+## Functions
+
+- `parse(allocator, raw_args)`: parse process arguments into `Options`.
+- `printHelp()`: print usage text to stderr.
+
+## Example
+
+```zig
+const opts = try sibl.parseArgs(allocator, raw_args);
+defer opts.deinit(allocator);
+
+std.debug.print("output: {s}\n", .{opts.output_path});
+```
+
+## Notes
+
+- Unknown flags return `error.UnknownOption`.
+- Flags that take values need the value right after the flag or in the next argument.
+- `--` stops option parsing. Later arguments become input files.

@@ -1,0 +1,156 @@
+---
+.title = "coff module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# coff module
+
+The `coff` module parses PE and COFF files for Windows targets.
+
+## Constants
+
+- `DOS_MAGIC`: `M`, `Z`.
+- `PE_SIGNATURE`: `P`, `E`, 0, 0.
+- `OptionalHeaderMagic.PE32`: 32-bit optional header.
+- `OptionalHeaderMagic.PE32_PLUS`: 64-bit optional header.
+
+## Types
+
+### `Machine`
+
+COFF machine type.
+
+- `name(self)`: return a readable name.
+- `isKnown(raw)`: check if a raw machine value is known.
+
+### `Subsystem`
+
+PE subsystem.
+
+- `name(self)`: return a readable name.
+
+### `ComdatSelection`
+
+COMDAT selection criteria.
+
+- `name(self)`: return a readable name.
+
+### `SectionKind`
+
+Classified section kind.
+
+Values include code, initialized data, uninitialized data, and others.
+
+- `name(self)`: return a readable name.
+
+### `SectionPermissions`
+
+Mapped section permissions.
+
+- `toChars(self)`: return a three-character permission string.
+
+### `StorageClass`
+
+COFF symbol storage class.
+
+- `name(self)`: return a readable name.
+
+### `SpecialSection`
+
+Special COFF section indices.
+
+Constants: `UNDEFINED = 0`, `ABSOLUTE = -1`, `DEBUG = -2`.
+
+### `DataDirectory`
+
+PE data directory entry.
+
+Fields: `virtual_address`, `size`.
+
+### `OptionalHeader`
+
+PE optional header.
+
+Fields include magic, entry point, image base, subsystem, and data directories.
+
+### `Relocation`
+
+COFF relocation entry.
+
+- `typeName(self, machine)`: return a readable type name.
+
+### `SectionHeader`
+
+COFF section header.
+
+Methods:
+
+- `isExecutable`, `isReadable`, `isWritable`: check permissions.
+- `hasCode`, `hasInitializedData`, `hasUninitializedData`: check content type.
+- `isComdat`, `isDiscardable`: check section traits.
+- `hasRelocationOverflow`: check for overflow.
+- `getAlignment`: return alignment.
+- `getPermissions`: return `SectionPermissions`.
+- `getNormalizedKind(self, resolved_name)`: classify a section.
+- `getName(self, strtab_bytes)`: read the section name.
+- `getBaseName(resolved_name)`: return the base section name.
+- `getSortKey(resolved_name)`: return a sort key.
+- `getData(self, file_bytes)`: return section bytes.
+- `getRelocationCount(self, file_bytes)`: count relocations.
+- `parseRelocation(self, file_bytes, index)`: parse one relocation.
+- `parseAllRelocations(self, allocator, file_bytes)`: parse all relocations.
+
+### `Symbol`
+
+COFF symbol table entry.
+
+Methods:
+
+- `isUndefined`, `isCommon`, `isAbsolute`, `isExternal`, `isStatic`, `isFunction`.
+- `getName(self, strtab_bytes)`: read the symbol name.
+
+### `Header`
+
+Parsed COFF or PE header.
+
+Methods:
+
+- `isExecutable`, `isDll`, `hasRelocsStripped`.
+- `parse(bytes)`: parse the header.
+- `parseSectionHeader(self, file_bytes, index)`: parse one section header.
+- `parseAllSectionHeaders(self, allocator, file_bytes)`: parse all section headers.
+- `getStringTable(self, file_bytes)`: return the string table.
+- `parseSymbol(self, file_bytes, index)`: parse one symbol.
+- `parseAllSymbols(self, allocator, file_bytes)`: parse all symbols.
+
+## Constants groups
+
+- `characteristics`: COFF file characteristic flags.
+- `section_flags`: COFF section characteristic flags.
+
+## Error sets
+
+- `Error`
+- `SectionError`
+- `SymbolError`
+- `RelocationError`
+
+## Example
+
+```zig
+const coff_hdr = try sibl.coff.Header.parse(mapped.data);
+const sections = try coff_hdr.parseAllSectionHeaders(allocator, mapped.data);
+
+for (sections) |sh| {
+    const name = try sh.getName(strtab_bytes);
+    std.debug.print("{s}\n", .{name});
+}
+```
+
+## Notes
+
+- Use `Header.isExecutable` and `Header.isDll` for PE files.
+- Section names can come from the string table when they start with `/`.
+- Relocation counts can use overflow tables.
+- The parser keeps slices into the mapped file.

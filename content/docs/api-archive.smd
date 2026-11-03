@@ -1,0 +1,113 @@
+---
+.title = "archive module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# archive module
+
+The `archive` module parses static archives such as `.a` and `.lib`. It supports GNU, BSD, and thin archives.
+
+## Constants
+
+- `ARMAG`: standard archive magic, `!<arch>\n`.
+- `THIN_ARMAG`: thin archive magic, `!<thin>\n`.
+- `ARFMAG`: member trailer magic.
+
+## Types
+
+### `ArchiveSymbol`
+
+Symbol defined by an archive member.
+
+Fields: `name`, `member_offset`.
+
+### `ExtractedMember`
+
+Extracted member data.
+
+- `deinit(self, allocator)`: free member data.
+
+### `MemberHeader`
+
+Archive member header.
+
+Methods:
+
+- `isGnuSymbolTable`, `isGnuStringTable`.
+- `isBsdSymbolTable(self, file_bytes)`.
+- `isSpecialTable(self, file_bytes)`.
+- `isBsdExtendedName`, `isGnuLongName`.
+- `getName(self, file_bytes, archive_path)`: read the member name.
+- `getData(self, file_bytes)`: read member data.
+
+### `MemberIterator`
+
+- `next(self)`: return the next member header or null.
+
+### `SymbolIterator`
+
+- `next(self)`: return the next archive symbol or null.
+
+### `SymbolIndex`
+
+Archive symbol index.
+
+Nested enum:
+
+- `Kind`: `gnu` or `bsd`.
+
+Methods:
+
+- `parse(data, kind)`: parse a symbol index.
+- `iterator(self)`: return a symbol iterator.
+- `parseAllSymbols(self, allocator)`: collect all symbols.
+- `findSymbol(self, name)`: find the member offset for a symbol.
+
+### `Archive`
+
+Parsed archive.
+
+Methods:
+
+- `parse(file_bytes)`: parse the archive.
+- `getSymbolIndex(self)`: return the symbol index if present.
+- `getMemberAtOffset(self, offset)`: read a member at an offset.
+- `findMemberDefiningSymbol(self, symbol_name)`: find the member that defines a symbol.
+- `resolveMemberPath(self, member_name, archive_path)`: resolve a thin archive member path.
+- `extractMember(self, allocator, member, archive_path)`: extract a member.
+- `iterator(self)`: iterate over members.
+
+### `SelectiveExtractor`
+
+Extracts only needed members.
+
+Methods:
+
+- `init(allocator, archive, archive_path)`: create an extractor.
+- `deinit(self)`: free resources.
+- `extractSymbol(self, symbol_name)`: extract the member that defines a symbol.
+- `extractUndefined(self, undefined_symbols)`: extract members for a list of undefined symbols.
+
+### `Error`
+
+Error set for archive parsing.
+
+## Example
+
+```zig
+const ar = try sibl.Archive.parse(mapped.data);
+if (try ar.getSymbolIndex()) |index| {
+    if (try index.findSymbol("main")) |offset| {
+        const member = try ar.getMemberAtOffset(offset);
+        const data = try member.getData(mapped.data);
+    }
+}
+```
+
+## Notes
+
+- Thin archives store member paths instead of member data.
+- Selective extraction pulls only the objects that define needed symbols.
+- The parser keeps slices into the mapped archive.
+- Member names can use GNU long name or BSD extended name syntax.

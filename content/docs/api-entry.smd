@@ -1,0 +1,57 @@
+---
+.title = "entry module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# entry module
+
+The `entry` module resolves the program entry point from a symbol table and a layout.
+
+## Types
+
+### `Entry`
+
+A resolved entry point.
+
+Fields:
+
+- `name`: symbol name
+- `address`: final virtual address
+- `file_index`: input file that defined the symbol
+- `section_index`: section index inside that file
+- `section_name`: canonical output section name, or empty for absolute symbols
+- `is_executable`: true when the holding section is executable
+
+### `Error`
+
+Errors from entry resolution.
+
+Values: `OutOfMemory`, `EntrySymbolNotFound`, `EntrySymbolUndefined`, `EntryNotInSection`.
+
+### `default_candidates`
+
+Candidate entry names tried when no explicit name is given.
+
+Values: `"_start"`, `"mainCRTStartup"`, `"_main"`, `"main"`.
+
+## Functions
+
+- `findSymbol(table, name)`: look up a defined symbol by name.
+- `symbolAddress(sym, layout)`: compute the final address of a defined symbol.
+- `resolve(table, layout, entry_name)`: resolve one entry name.
+- `resolveCandidates(table, layout, candidates)`: resolve the first defined symbol from a candidate list.
+
+## Example
+
+```zig
+const entry_point = try sibl.resolveEntry(&table, &layout, "_start");
+std.debug.print("entry: 0x{x}\n", .{entry_point.address});
+```
+
+## Notes
+
+- Absolute symbols resolve to their stored value.
+- Section-relative symbols use the output section address plus the member offset and symbol value.
+- A symbol in a non-alloc section returns `EntryNotInSection`.
+- The default candidates follow ELF, PE, Mach-O, and a last-resort `main`.

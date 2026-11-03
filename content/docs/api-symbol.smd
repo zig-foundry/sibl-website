@@ -1,0 +1,127 @@
+---
+.title = "symbol module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# symbol module
+
+The `symbol` module stores and resolves symbols across all input formats.
+
+## Types
+
+### `Binding`
+
+Symbol binding strength.
+
+Values: `local`, `global`, `weak`.
+
+Methods:
+
+- `name(self)`: return a readable name.
+- `isStrong(self)`: true for `global`.
+
+### `Kind`
+
+High-level symbol kind.
+
+Values: `defined`, `undefined`, `absolute`, `common`.
+
+Methods:
+
+- `name(self)`: return a readable name.
+- `isDefinition(self)`: true for every kind except `undefined`.
+
+### `Symbol`
+
+Format-agnostic symbol.
+
+Fields:
+
+- `name`: interned symbol name, owned by the table.
+- `binding`: `Binding`.
+- `kind`: `Kind`.
+- `value`: value, address, or alignment.
+- `size`: size in bytes.
+- `section_index`: section index in the source object.
+- `file_index`: input file index.
+- `visibility`: `elf.SymbolVisibility`.
+
+Methods:
+
+- `isDefined(self)`: true for defined, absolute, and common.
+- `isUndefined(self)`: true for undefined.
+- `isStrong(self)`: true for strong definitions.
+- `isWeak(self)`: true for weak definitions.
+- `isHidden(self)`: true for hidden or internal visibility.
+- `isExportable(self)`: true when the symbol should appear in a dynamic symbol table.
+- `visibilityName(self)`: return a short visibility name.
+
+### `SymbolTable`
+
+Central hash map of symbols.
+
+Fields:
+
+- `map`: `std.StringHashMapUnmanaged(Symbol)`.
+- `allocator`: allocator used for owned names.
+
+Methods:
+
+- `init(allocator)`: create an empty table.
+- `deinit(self)`: free all owned names and the map.
+- `count(self)`: number of unique names.
+- `get(self, name)`: look up a symbol or return null.
+- `add(self, symbol)`: insert a symbol with binding and visibility rules.
+- `remove(self, name)`: remove a symbol and return true if it existed.
+- `iterator(self)`: iterate over all symbols.
+- `undefinedCount(self)`: count undefined symbols.
+- `collectUndefined(self, allocator)`: collect undefined names into a new slice.
+- `checkResolved(self)`: return `UnresolvedSymbols` if any symbol is undefined.
+- `exportableCount(self)`: count exportable symbols.
+- `collectExportable(self, allocator)`: collect exportable names into a new slice.
+- `addElf(self, elf_sym, strtab_bytes, file_index)`: convert and add an ELF symbol.
+- `addCoff(self, coff_sym, strtab_bytes, file_index)`: convert and add a COFF symbol.
+- `addMacho(self, nlist, strtab_bytes, file_index)`: convert and add a Mach-O symbol.
+
+### `Error`
+
+Error set for the symbol table.
+
+Values: `OutOfMemory`, `EmptyName`, `DuplicateStrongDefinition`, `UnresolvedSymbols`.
+
+## Function
+
+- `moreRestrictiveVisibility(a, b)`: return the more restrictive of two ELF visibility values.
+
+## Binding rules
+
+- Undefined is replaced by any definition.
+- Weak is replaced by strong.
+- Two strong definitions return `DuplicateStrongDefinition`.
+- Two weak definitions keep the first one.
+- Local symbols do not conflict with global symbols.
+- Visibility uses the more restrictive value.
+
+## Example
+
+```zig
+var table = sibl.SymbolTable.init(allocator);
+defer table.deinit();
+
+try table.add(.{
+    .name = "main",
+    .binding = .global,
+    .kind = .defined,
+    .value = 0x401000,
+});
+
+const sym = table.get("main");
+```
+
+## Notes
+
+- The table owns all stored symbol names.
+- Use `checkResolved` before finishing the link.
+- Use `collectUndefined` to report missing symbols.
+- Use `collectExportable` when building a dynamic symbol table.

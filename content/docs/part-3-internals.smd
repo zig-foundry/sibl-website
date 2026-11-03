@@ -6,16 +6,99 @@
 
 # Part 3: Inside sibl
 
-This part is in progress. It will go inside the source tree and follow one input file through the linker pipeline.
+This part goes inside the source tree. It maps the modules, follows one input file through the pipeline, and explains the test and contribution rules.
 
-## Planned topics
+## Source map
 
-- The role of each module in `src/`.
-- How zero-copy slices and arena allocation move through the pipeline.
-- How the parser feeds symbols and sections into the layout and relocation stages.
-- How the unit tests are organized and how to add a new test.
-- How to update the roadmap and send a clean change.
+| File | Phase | Role |
+| --- | --- | --- |
+| `src/alloc.zig` | 1.2 | Arena and scratch allocators |
+| `src/args.zig` | 1.3 | CLI argument parser |
+| `src/target.zig` | 1.4 | Target detection and page size |
+| `src/file.zig` | 1.5 | Memory-mapped file reader |
+| `src/elf.zig` | 2 | ELF parsing |
+| `src/strtab.zig` | 2.4 | String table reader and builder |
+| `src/coff.zig` | 3 | PE and COFF parsing |
+| `src/macho.zig` | 4 | Mach-O parsing |
+| `src/archive.zig` | 5 | Static archive parsing |
+| `src/symbol.zig` | 6 | Global symbol table and resolution |
+| `src/layout.zig` | 7 | Section grouping, segments, size accounting |
+| `src/reloc.zig` | 8 | Relocation engine |
+| `src/entry.zig` | 9.1 | Entry point resolution |
+| `src/section_rules.zig` | 9.2 | Placement rules and memory regions |
+| `src/defsym.zig` | 9.3 | `--defsym` symbol assignment |
+| `src/templates.zig` | 9.4 | Default layout templates |
+| `src/root.zig` | all | Public re-exports |
+| `src/main.zig` | all | Linker executable entry point |
 
-## Until then
+## Design rules
 
-Read [Part 1](/docs/part-1-getting-started) for the build steps and the project map. The [roadmap](/roadmap) lists the phases that are still open.
+sibl follows a few simple rules.
+
+- Allocations are explicit. Pass an allocator instead of using hidden global state.
+- Parsing is zero-copy. Parsers return slices into the mapped input file.
+- Bulk data uses an arena. The arena frees everything in one call at the end.
+- Errors are returned, not hidden. Callers decide how to handle them.
+- Modules are small and focused. Each module owns one stage.
+
+## One file through the pipeline
+
+Take one ELF object file. The pipeline looks like this.
+
+1. `main.zig` reads the arguments and detects the target.
+2. `file.zig` maps the input file into memory.
+3. `elf.zig` parses the header, section headers, symbols, and relocations.
+4. `symbol.zig` adds the ELF symbols to the global symbol table.
+5. `layout.zig` adds allocatable sections to the layout.
+6. Placement rules, `--defsym`, and the template adjust the plan.
+7. `layout.computeAddresses` assigns virtual addresses and file offsets.
+8. `layout.buildSegments` groups sections into segments.
+9. `layout.accountSizes` finalizes sizes.
+10. `entry.zig` resolves the entry point.
+11. `reloc.zig` can apply relocations when a buffer is available.
+
+The current executable stops after printing the plan. Binary emission is Phase 13.
+
+## Memory flow
+
+- The arena allocator owns symbols, section lists, and parsed data.
+- The mapped file owns the raw bytes. It stays alive until parsing is done.
+- Output section names are heap-owned and freed by `OutputSection.deinit`.
+- Size reports own their segment arrays and are freed with `freeSizeReport`.
+
+## Tests
+
+Tests live next to the code in each module. Run them with:
+
+```sh
+zig build test
+```
+
+When you add a module, add a `test` block in `root.zig` so the test runner picks it up.
+
+Good tests use real formulas and real inputs. Avoid stubs. Test both success and error paths.
+
+## Adding a new module
+
+1. Create `src/new_module.zig`.
+2. Add a module-level comment with the phase and contract.
+3. Document every public type, function, and error.
+4. Add unit tests next to the code.
+5. Re-export public types from `src/root.zig`.
+6. Add the module to the test runner in `root.zig`.
+7. Update `ROADMAP.md`.
+
+## Contribution checklist
+
+- Keep the zero-copy and arena style.
+- Keep functions small and focused.
+- Return errors instead of panicking.
+- Run `zig build test` before sending a change.
+- Keep documentation in sync with code.
+
+## Related pages
+
+- [Part 1: Getting Started](/docs/part-1-getting-started)
+- [Part 2: Core Concepts](/docs/part-2-core-concepts)
+- [API Reference](/docs/api-reference)
+- [Roadmap](/roadmap)

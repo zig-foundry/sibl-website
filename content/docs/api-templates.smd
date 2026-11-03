@@ -1,0 +1,79 @@
+---
+.title = "templates module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# templates module
+
+The `templates` module provides default layout templates for common targets.
+
+## Types
+
+### `Kind`
+
+Built-in template kind.
+
+Values: `linux_elf`, `windows_pe`, `macos_macho`, `bare_metal`.
+
+- `name(self)`: return a short name such as `"linux-elf"`.
+
+### `Template`
+
+A complete default layout description.
+
+Fields:
+
+- `kind`: `Kind`
+- `base_address`: preferred base virtual address
+- `page_size`: page size in bytes
+- `default_entry`: default entry symbol
+- `default_output`: default output file name
+- `preferred_sections`: preferred output section order
+
+Constants:
+
+- `linux_sections`: `.text`, `.rodata`, `.data`, `.bss`
+- `windows_sections`: `.text`, `.rdata`, `.data`, `.bss`
+- `macos_sections`: `.text`, `.const`, `.data`, `.bss`
+- `bare_sections`: `.text`, `.rodata`, `.data`, `.bss`
+
+## Functions
+
+- `forTarget(info, bare_metal)`: build the template for a target. Bare-metal is selected when `bare_metal` is true.
+- `applyBase(layout, tmpl)`: apply the template base address and page size to a layout.
+- `sectionStart(layout, name)`: virtual address of the first byte of a named output section.
+- `sectionEnd(layout, name)`: virtual address one past the last byte of a named output section.
+- `imageEnd(layout)`: highest allocated virtual address.
+- `provideBoundarySymbols(table, layout, tmpl)`: define standard boundary symbols if their names are still free.
+
+## Boundary symbols
+
+After address assignment, the template can provide:
+
+- `__executable_start`
+- `etext` and `_etext`
+- `edata` and `_edata`
+- `__bss_start`
+- `end` and `_end`
+
+These are only added when the name is not already defined.
+
+## Example
+
+```zig
+const bare_metal = options.region_specs.items.len > 0;
+const tmpl = sibl.templateForTarget(target_info, bare_metal);
+
+var layout = sibl.Layout.init(allocator, tmpl.base_address, tmpl.page_size);
+defer layout.deinit();
+
+sibl.applyTemplateBase(&layout, tmpl);
+```
+
+## Notes
+
+- Bare-metal is selected when any `--region` rule is present.
+- Windows PE uses base `0x140000000` for 64-bit and `0x400000` for 32-bit.
+- macOS Mach-O uses base `0x100000000`.
+- Linux ELF uses base `0x400000`.

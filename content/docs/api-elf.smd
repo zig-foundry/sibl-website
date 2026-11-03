@@ -1,0 +1,146 @@
+---
+.title = "elf module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# elf module
+
+The `elf` module parses ELF object files and executables. It supports 32-bit and 64-bit ELF.
+
+## Constants
+
+- `MAGIC`: `0x7F`, `E`, `L`, `F`.
+
+## Types
+
+### `Class`
+
+ELF class.
+
+Values: `elf32`, `elf64`.
+
+- `name(self)`: return a readable name.
+
+### `FileType`
+
+ELF file type.
+
+Values include `none`, `rel`, `exec`, `dyn`, `core`.
+
+- `name(self)`: return a readable name.
+
+### `Machine`
+
+ELF machine type.
+
+- `name(self)`: return a readable name.
+
+### `SectionType`
+
+ELF section type.
+
+- `name(self)`: return a readable name.
+
+### `SymbolBinding`
+
+Values: `local`, `global`, `weak`.
+
+- `name(self)`: return a readable name.
+
+### `SymbolType`
+
+Values: `none`, `object`, `func`, `section`, `file`, and others.
+
+- `name(self)`: return a readable name.
+
+### `SymbolVisibility`
+
+Values: `default`, `internal`, `hidden`, `protected`.
+
+- `name(self)`: return a readable name.
+
+### `SpecialSectionIndex`
+
+Special section indices.
+
+Constants: `UNDEF = 0`, `LORESERVE = 0xff00`, `ABS = 0xfff1`, `COMMON = 0xfff2`, `XINDEX = 0xffff`.
+
+### `Symbol`
+
+ELF symbol table entry.
+
+Methods:
+
+- `isUndefined(self)`: true for undefined symbols.
+- `isAbsolute(self)`: true for absolute symbols.
+- `getName(self, strtab_bytes)`: read the symbol name.
+
+### `Relocation`
+
+ELF relocation entry.
+
+- `typeName(self, machine)`: return a readable type name.
+
+### `SectionHeader`
+
+ELF section header.
+
+Methods:
+
+- `isAlloc(self)`: true for allocatable sections.
+- `isWritable(self)`: true for writable sections.
+- `isExecutable(self)`: true for executable sections.
+- `getData(self, file_bytes)`: return section bytes.
+- `getName(self, shstrtab_data)`: read the section name.
+- `getSymbolCount(self, class)`: count symbols in the section.
+- `parseSymbol(self, bytes, class, endian, index)`: parse one symbol.
+- `parseAllSymbols(self, allocator, bytes, class, endian)`: parse all symbols.
+- `getRelocationCount(self, class)`: count relocations.
+- `parseRelocation(self, bytes, class, endian, index)`: parse one relocation.
+- `parseAllRelocations(self, allocator, bytes, class, endian)`: parse all relocations.
+
+### `Header`
+
+Parsed ELF header.
+
+Methods:
+
+- `parse(bytes)`: parse the ELF header.
+- `parseSectionHeader(self, bytes, index)`: parse one section header.
+- `parseAllSectionHeaders(self, allocator, bytes)`: parse all section headers.
+- `getSectionStringTable(self, bytes)`: return the section name string table.
+
+### `flags`
+
+ELF section flag constants.
+
+Constants include `WRITE`, `ALLOC`, `EXECINSTR`, `MERGE`, `STRINGS`, `INFO_LINK`, `LINK_ORDER`, `OS_NONCONFORMING`, `GROUP`, and `TLS`.
+
+## Error sets
+
+- `HeaderError`
+- `SectionError`
+- `SymbolError`
+- `RelocationError`
+
+## Example
+
+```zig
+const elf_hdr = try sibl.elf.Header.parse(mapped.data);
+const shstrtab = try elf_hdr.getSectionStringTable(mapped.data);
+const sections = try elf_hdr.parseAllSectionHeaders(allocator, mapped.data);
+
+for (sections, 0..) |sh, idx| {
+    if (sh.sh_type == .null) continue;
+    const name = try sh.getName(shstrtab);
+    std.debug.print("[{d}] {s}\n", .{ idx, name });
+}
+```
+
+## Notes
+
+- Use `elf_hdr.class` when parsing symbols and relocations.
+- Section names come from the section header string table.
+- Relocation sections point to their symbol table through `sh.link`.
+- The parser keeps zero-copy slices into the mapped file.

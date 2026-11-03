@@ -1,0 +1,171 @@
+---
+.title = "macho module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# macho module
+
+The `macho` module parses Mach-O files for macOS and Apple Silicon targets.
+
+## Constants
+
+Magic values:
+
+- `MH_MAGIC`, `MH_CIGAM`
+- `MH_MAGIC_64`, `MH_CIGAM_64`
+- `FAT_MAGIC`, `FAT_CIGAM`
+- `FAT_MAGIC_64`, `FAT_CIGAM_64`
+
+## Types
+
+### `CpuType`
+
+Mach-O CPU type.
+
+- `name(self)`: return a readable name.
+
+### `FileType`
+
+Mach-O file type.
+
+- `name(self)`: return a readable name.
+
+### `CommandType`
+
+Load command type.
+
+- `name(self)`: return a readable name.
+
+### `SectionType`
+
+Mach-O section type.
+
+- `name(self)`: return a readable name.
+
+### `Section64`
+
+64-bit section descriptor.
+
+Methods:
+
+- `getSectName(self)`: section name.
+- `getSegName(self)`: segment name.
+- `getAlignment(self)`: alignment.
+- `getType(self)`: section type.
+- `isZeroFill(self)`: true for zero-fill sections.
+- `hasInstructions(self)`: true for code sections.
+- `getData(self, file_bytes)`: section bytes.
+- `parseRelocation(self, file_bytes, endian, index)`: parse one relocation.
+- `parseAllRelocations(self, allocator, file_bytes, endian)`: parse all relocations.
+
+### `Nlist64`
+
+64-bit nlist symbol entry.
+
+Methods:
+
+- `isStab`, `isExternal`, `isPrivateExternal`.
+- `getType`, `isUndefined`, `isCommon`, `isAbsolute`, `isSection`, `isIndirect`.
+- `isWeakDef`, `isWeakRef`.
+- `getLibraryOrdinal`.
+- `getName(self, strtab_bytes)`: symbol name.
+- `typeName(self)`: readable type name.
+
+### `Segment64Command`
+
+64-bit segment load command.
+
+Methods:
+
+- `getName(self)`: segment name.
+- `isExecutable`, `isWritable`, `isReadable`.
+- `parseSection(self, endian, index)`: parse one section.
+- `parseAllSections(self, allocator, endian)`: parse all sections.
+
+### `SymtabCommand`
+
+Symbol table load command.
+
+Methods:
+
+- `getStringTable(self, file_bytes)`: string table bytes.
+- `parseSymbol(self, file_bytes, endian, index)`: parse one symbol.
+- `parseAllSymbols(self, allocator, file_bytes, endian)`: parse all symbols.
+
+### `DysymtabCommand`, `MainCommand`, `DylibCommand`, `BuildVersionCommand`
+
+Load command payloads. `DylibCommand.getName` and `BuildVersionCommand.platformName` read their data.
+
+### `LoadCommand`
+
+Generic load command.
+
+Methods convert it to a specific command type:
+
+- `asSegment64`, `asSymtab`, `asDysymtab`, `asMain`, `asDylib`, `asBuildVersion`.
+
+### `LoadCommandIterator`
+
+- `next(self)`: return the next load command or null.
+
+### `Header`
+
+Parsed Mach-O header.
+
+Methods:
+
+- `isObject`, `isExecutable`, `isDylib`, `isPie`.
+- `headerSize(self)`: header size in bytes.
+- `parse(bytes)`: parse the header.
+- `loadCommands(self, file_bytes)`: return a load command iterator.
+
+### `Relocation`
+
+Mach-O relocation entry.
+
+- `byteSize(self)`: size in bytes.
+- `typeName(self, cpu)`: readable type name.
+
+## Functions
+
+- `parseRelocation(bytes, endian)`: parse one relocation.
+- `parseNlist64(bytes, endian)`: parse one nlist entry.
+- `parseSection64(bytes, endian)`: parse one section.
+
+## Constant groups
+
+- `flags`: Mach-O header flags.
+- `section_attributes`: section attribute flags.
+- `vm_prot`: virtual memory protection flags.
+- `nlist_masks`, `nlist_type`, `nlist_desc`: symbol entry masks and flags.
+- `reloc_constants`: relocation constants such as `R_SCATTERED`.
+
+## Error sets
+
+- `Error`
+- `CommandError`
+- `SectionError`
+- `SymbolError`
+- `RelocationError`
+
+## Example
+
+```zig
+const macho_hdr = try sibl.macho.Header.parse(mapped.data);
+var it = try macho_hdr.loadCommands(mapped.data);
+
+while (try it.next()) |cmd| {
+    if (cmd.cmd == .segment_64) {
+        const seg = try cmd.asSegment64(macho_hdr.endian());
+        std.debug.print("segment: {s}\n", .{seg.getName()});
+    }
+}
+```
+
+## Notes
+
+- Use the header endian when parsing commands and symbols.
+- Load commands follow the header.
+- Sections live inside segment load commands.
+- The parser keeps slices into the mapped file.

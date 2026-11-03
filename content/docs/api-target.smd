@@ -1,0 +1,60 @@
+---
+.title = "target module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# target module
+
+The `target` module resolves the target machine. It converts host settings or explicit flags into a `TargetInfo` value.
+
+## Types
+
+### `Arch`
+
+Supported CPU architectures.
+
+Values: `x86_64`, `aarch64`, `riscv64`, `x86`, `arm`.
+
+- `pointerWidth(self)`: return 32 or 64.
+
+### `BinaryFormat`
+
+Supported container formats.
+
+Values: `elf`, `coff`, `macho`.
+
+### `TargetInfo`
+
+Complete target specification.
+
+Fields:
+
+- `arch`: `Arch`
+- `format`: `BinaryFormat`
+- `endian`: `std.builtin.Endian`
+- `page_size`: page size in bytes
+- `default_entry`: default entry symbol
+- `default_output`: default output file name
+
+Methods:
+
+- `detect(opts)`: resolve from parsed options. It prefers explicit emulation, then explicit format, then the host.
+
+## Example
+
+```zig
+const target_info = sibl.TargetInfo.detect(options);
+
+std.debug.print("arch={s} format={s} page={d}\n", .{
+    @tagName(target_info.arch),
+    @tagName(target_info.format),
+    target_info.page_size,
+});
+```
+
+## Notes
+
+- AArch64 ELF uses a 65536 byte page size.
+- The default entry and output name come from the target.
+- Use this value to pick the layout template with `sibl.templateForTarget`.

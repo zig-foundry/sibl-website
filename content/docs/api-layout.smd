@@ -1,0 +1,139 @@
+---
+.title = "layout module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# layout module
+
+The `layout` module groups input sections, assigns addresses, builds segments, and accounts for sizes.
+
+## Types
+
+### `InputSection`
+
+Normalized input section.
+
+Fields:
+
+- `name`: original section name.
+- `data`: raw bytes, empty for NOBITS.
+- `alignment`: required alignment.
+- `is_alloc`, `is_writable`, `is_executable`, `is_nobits`: section flags.
+- `file_index`: input file index.
+- `section_index`: section index in the source object.
+
+### `OutputSection`
+
+Merged output section.
+
+Fields:
+
+- `name`: canonical name.
+- `members`: input sections merged into it.
+- `alignment`: maximum member alignment.
+- `size`: total size after merging.
+- `virtual_address`: final virtual address.
+- `file_offset`: final file offset.
+- `is_alloc`, `is_writable`, `is_executable`, `is_nobits`: flags.
+
+Methods:
+
+- `deinit(self, allocator)`: free the name and members.
+
+### `SegmentFlags`
+
+ELF-style protection flags.
+
+Constants: `R = 4`, `W = 2`, `X = 1`.
+
+### `Segment`
+
+Loadable segment.
+
+Fields:
+
+- `virtual_address`, `file_offset`, `file_size`, `memory_size`, `alignment`, `flags`, `section_indices`.
+
+Methods:
+
+- `deinit(self, allocator)`: free section indices.
+- `isReadable`, `isWritable`, `isExecutable`: check flags.
+- `isCongruent(self)`: check `p_vaddr` and `p_offset` congruence.
+
+### `SegmentSize`
+
+Per-segment size breakdown.
+
+Fields: `index`, `file_size`, `memory_size`, `bss_size`, `virtual_address`, `file_offset`.
+
+### `SizeReport`
+
+Aggregate image size report.
+
+Fields: `total_file_size`, `total_memory_size`, `virtual_end`, `file_end`, `segments`.
+
+### `Layout`
+
+Section layout engine.
+
+Fields include sections, segments, allocator, base address, page size, and address overrides.
+
+Methods:
+
+- `init(allocator, base_address, page_size)`: create a layout.
+- `deinit(self)`: free all data.
+- `count(self)`: number of output sections.
+- `get(self, name)`: find an output section by name.
+- `addInput(self, input)`: group an input section.
+- `pinOutput(self, out_name, address)`: pin an output section at an address.
+- `computeAddresses(self)`: assign virtual addresses and file offsets.
+- `virtualSize(self)`: total virtual size.
+- `fileSize(self)`: total file size.
+- `segmentCount(self)`: number of segments.
+- `buildSegments(self)`: build PT_LOAD-style segments.
+- `accountSizes(self)`: finalize sizes and return a `SizeReport`.
+- `freeSizeReport(self, report)`: free a report.
+
+### `Error`
+
+Error set for layout.
+
+Values: `OutOfMemory`, `EmptyName`, `PinConflict`.
+
+## Functions
+
+- `canonicalizeName(name)`: collapse section names such as `.text.foo` to `.text`.
+- `alignTo(value, alignment)`: align a value up to a power-of-two alignment.
+
+## Example
+
+```zig
+var layout = sibl.Layout.init(allocator, 0x400000, 4096);
+defer layout.deinit();
+
+try layout.addInput(.{
+    .name = ".text",
+    .data = code,
+    .alignment = 16,
+    .is_alloc = true,
+    .is_writable = false,
+    .is_executable = true,
+    .is_nobits = false,
+    .file_index = 0,
+});
+
+layout.computeAddresses();
+try layout.buildSegments();
+var report = try layout.accountSizes();
+defer layout.freeSizeReport(report);
+```
+
+## Notes
+
+- Call `computeAddresses` before `buildSegments`.
+- Call `buildSegments` before `accountSizes`.
+- Protection changes between sections trigger page alignment.
+- `.bss` contributes to memory size but not file size.
+- `pinOutput` on the same section with a different address returns `PinConflict`.
+- Canonicalization keeps `.data.rel.ro` distinct.

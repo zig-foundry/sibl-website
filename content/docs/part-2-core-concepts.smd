@@ -6,17 +6,167 @@
 
 # Part 2: Core Concepts
 
-This part is in progress. It will explain the main ideas behind the stages that sibl runs. For now, the outline below shows what it will cover.
+This part explains the main ideas behind the stages that sibl runs. It covers object formats, symbols, sections, segments, relocations, entry points, placement rules, symbol assignment, and templates.
 
-## Planned topics
+## Object formats
 
-- How sibl detects and reads ELF, PE/COFF, Mach-O, and static archives.
-- How the global symbol table handles strong, weak, local, hidden, and protected symbols.
-- How section grouping and address layout produce output sections and segments.
-- How relocations work on x86_64 and AArch64, including range checks.
-- How sibl resolves entry points and applies default layout templates.
-- How `--place`, `--pin`, `--region`, and `--defsym` change the link plan.
+sibl reads four input kinds.
 
-## Until then
+- ELF: used on Linux and other Unix systems. It has headers, section headers, symbol tables, string tables, and relocations.
+- PE and COFF: used on Windows. PE adds a DOS stub, an optional header, and data directories on top of COFF.
+- Mach-O: used on macOS. It has load commands, segments, sections, and nlist symbols.
+- Static archives: collections of object files with a symbol index. sibl supports GNU, BSD, and thin archives.
 
-Part 1 shows how to build the project, run the inspection pass, and read the report. The [roadmap](/roadmap) shows the remaining phases, including dynamic linking and binary emission.
+The parsers do not copy data. They return slices into the memory-mapped input file. This keeps parsing fast and keeps memory use low.
+
+## Symbols
+
+A symbol is a name with a meaning. It can be a function, an object, a section, or a constant. sibl uses one format-agnostic `Symbol` type for all inputs.
+
+Each symbol has:
+
+- a name
+- a binding: local, global, or weak
+- a kind: defined, undefined, absolute, or common
+- a value
+- a size
+- a section index
+- a file index
+- a visibility: default, internal, hidden, or protected
+
+The symbol table stores one entry per name. When a new symbol arrives, sibl applies binding rules.
+
+- An undefined symbol is replaced by any definition.
+- A weak definition is replaced by a strong definition.
+- A strong definition stays. A second strong definition is an error.
+- Two weak definitions keep the first one.
+- Local symbols do not conflict with global symbols.
+- Visibility uses the more restrictive value.
+
+After all inputs are read, `checkResolved` makes sure no symbol is undefined. In shared mode, this check is relaxed.
+
+Exportable symbols are global symbols that are defined and not hidden or internal. These are the candidates for a dynamic symbol table.
+
+## Sections and section grouping
+
+An input section is a named block of bytes with flags. The flags say whether it is allocatable, writable, executable, or zero-filled.
+
+sibl groups input sections into output sections. The grouping rules are:
+
+- Canonicalize the name. For example, `.text.main` becomes `.text`.
+- Only merge sections with compatible flags.
+- The first occurrence sets the output section order.
+
+Some names stay distinct. For example, `.data.rel.ro` is not merged into `.data`.
+
+Canonical names include `.text`, `.rodata`, `.data`, `.bss`, `.tdata`, `.tbss`, `.init_array`, `.fini_array`, and `.preinit_array`.
+
+## Address layout
+
+After sections are grouped, sibl assigns virtual addresses and file offsets.
+
+- Start at the base address.
+- Align each section to its own alignment.
+- When protection changes between sections, align to the page size.
+- `.bss` and other NOBITS sections add to virtual size but not file size.
+- File offset tracks only sections with bytes.
+
+Placement rules can change this plan. A pin sets an exact virtual address. A region allocates sections inside a named memory area.
+
+## Segments
+
+A segment is a loadable range with one set of protection flags. sibl builds PT_LOAD-style segments from consecutive output sections that share the same R, W, and X flags.
+
+Each segment tracks:
+
+- virtual address
+- file offset
+- file size
+- memory size
+- alignment
+- protection flags
+- the output sections inside it
+
+File size and memory size can differ. `.bss` adds to memory size but not file size. The file offset and virtual address are congruent modulo the page size, so the loader can map the segment directly.
+
+`accountSizes` finalizes the sizes and returns a `SizeReport` with totals and a per-segment breakdown.
+
+## Relocations
+
+A relocation is a patch that must be applied after addresses are known. It says: at this offset, write a value based on a symbol address, an addend, and the place address.
+
+sibl supports x86_64 and AArch64.
+
+x86_64:
+
+- `NONE`: no change.
+- `64`: `S + A`.
+- `PC32`: `S + A - P`, signed 32-bit.
+- `32`: `S + A`, zero-extended 32-bit.
+- `32S`: `S + A`, sign-extended 32-bit.
+- `PC64`: `S + A - P`.
+
+AArch64:
+
+- `NONE`: no change.
+- `ABS64`: `S + A`.
+- `ADR_PREL_PG_HI21`: page delta from `P` to `S + A`.
+- `ADD_ABS_LO12_NC`: low 12 bits of `S + A`.
+- `JUMP26` and `CALL26`: `(S + A - P) / 4`, 26-bit.
+
+Here, `S` is the symbol address, `A` is the addend, and `P` is the place address. Range errors return `Overflow`.
+
+Relocations can be applied directly with `apply`, or resolved from symbol names with `resolve` and `resolveAndApply`.
+
+## Entry points
+
+The entry point is the first instruction that runs. sibl resolves it from the symbol table and the layout.
+
+- The default name is `_start`.
+- Use `-e` or `--entry` to choose another name.
+- Absolute symbols resolve to their stored value.
+- Other symbols resolve to the output section address plus the member offset and the symbol value.
+
+If the symbol is undefined or missing, sibl returns an error. If the symbol lives in a non-alloc section, sibl returns `EntryNotInSection`.
+
+When no explicit name is given, sibl tries `_start`, `mainCRTStartup`, `_main`, and `main` in that order.
+
+## Placement rules
+
+Placement rules help with embedded or custom memory maps.
+
+- `--region NAME=ADDR:SIZE` defines a memory region.
+- `--place PATTERN=DEST` moves matching sections into an output section or a region.
+- `--pin PATTERN=ADDR` pins the holding output section at an exact address.
+
+Patterns can be an exact name, a prefix plus `*`, or a single `*` catch-all. The first matching rule wins, so put catch-all rules last. Regions fill in order with alignment until they run out.
+
+## Symbol assignment
+
+`--defsym SYMBOL=EXPRESSION` defines an absolute symbol after input symbols are collected.
+
+Expressions support:
+
+- decimal, hex, and binary constants
+- existing symbol names
+- `+` and `-` between terms, with no spaces
+
+Later specs can use symbols from earlier specs. A second strong definition of the same name is an error.
+
+## Templates
+
+When no custom base is pinned, sibl applies a built-in template.
+
+| Target | Base address | Default entry | Output |
+| --- | --- | --- | --- |
+| Linux ELF | `0x400000` | `_start` | `a.out` |
+| Windows PE 64 | `0x140000000` | `mainCRTStartup` | `a.exe` |
+| Windows PE 32 | `0x400000` | `mainCRTStartup` | `a.exe` |
+| macOS Mach-O | `0x100000000` | `_main` | `a.out` |
+| Bare-metal | `0` | `_start` | `a.out` |
+
+Bare-metal is selected when any `--region` rule is present. After address assignment, the template adds boundary symbols such as `etext`, `edata`, `__bss_start`, and `end`, but only if those names are still free.
+
+## What comes next
+
+Part 3 goes inside the source tree and shows how the modules connect. The API reference lists every public type and function.

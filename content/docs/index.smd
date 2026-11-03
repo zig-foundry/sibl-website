@@ -6,11 +6,11 @@
 
 # Documentation
 
-This guide explains sibl in three parts. Part 1 helps you build the project and run the inspection pass on your first object file. Part 2 explains the main ideas behind the linker. Part 3 goes inside the source tree and the test suite.
+This guide explains sibl in four parts. Part 1 helps you build the project and run the inspection pass on your first object file. Part 2 explains the main ideas behind the linker. Part 3 goes inside the source tree and the test suite. The API reference lists every public type and function that sibl re-exports from `src/root.zig`.
 
 If you are new to sibl, start with Part 1.
 
-## The three parts
+## The four parts
 
 ### Part 1: Getting Started
 
@@ -20,15 +20,21 @@ Build sibl, run the test suite, and link your first object file. This part also 
 
 ### Part 2: Core Concepts
 
-This part is in progress. It will explain object formats, symbol resolution, section grouping, segment layout, relocations, entry points, placement rules, `--defsym`, and templates.
+This part explains object formats, symbol resolution, section grouping, segment layout, relocations, entry points, placement rules, `--defsym`, and templates.
 
-[Read the Part 2 outline](/docs/part-2-core-concepts)
+[Read Part 2: Core Concepts](/docs/part-2-core-concepts)
 
 ### Part 3: Inside sibl
 
-This part is in progress. It will map the source modules, follow one file through the linker pipeline, and explain the test and contribution rules.
+This part maps the source modules, follows one file through the linker pipeline, and explains the test and contribution rules.
 
-[Read the Part 3 outline](/docs/part-3-internals)
+[Read Part 3: Inside sibl](/docs/part-3-internals)
+
+### API Reference
+
+The API reference documents every public module that sibl exposes. Each page shows the main types, the functions, and a short example.
+
+[Read the API Reference](/docs/api-reference)
 
 ## What you need
 

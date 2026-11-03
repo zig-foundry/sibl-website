@@ -1,0 +1,106 @@
+---
+.title = "rules module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# rules module
+
+The `rules` module implements custom section placement for embedded or custom memory maps. It supports `--place`, `--pin`, and `--region`.
+
+## Types
+
+### `Action`
+
+What a matching rule does.
+
+Variants:
+
+- `output_name`: move the input into an output section with this name.
+- `address`: pin the holding output section at this address.
+- `region`: allocate the input inside a named memory region.
+
+### `Rule`
+
+One placement rule.
+
+Fields:
+
+- `pattern`: input section name pattern.
+- `action`: `Action`.
+
+### `MemoryRegion`
+
+A named memory area with an allocation cursor.
+
+Fields:
+
+- `name`: region name.
+- `address`: first byte address.
+- `size`: total size in bytes.
+- `cursor`: next free byte address.
+
+Methods:
+
+- `freeBytes(self)`: bytes still free.
+- `isUsed(self)`: true once anything was allocated.
+
+### `Placement`
+
+Result of applying the rules to one input section.
+
+Fields:
+
+- `address`: pinned address or null.
+
+### `RuleSet`
+
+Collection of rules and regions.
+
+Methods:
+
+- `init(allocator)`: create an empty rule set.
+- `deinit(self)`: free memory.
+- `ruleCount(self)`: number of rules.
+- `regionCount(self)`: number of regions.
+- `addRule(self, pattern, action)`: add one rule.
+- `addRegion(self, name, address, size)`: add one region.
+- `addMoveSpec(self, spec)`: parse and add a `--place` spec.
+- `addPinSpec(self, spec)`: parse and add a `--pin` spec.
+- `addRegionSpec(self, spec)`: parse and add a `--region` spec.
+- `apply(self, input)`: apply rules to one input section. Returns `Placement`.
+
+### `Error`
+
+Errors from the rule engine.
+
+Values: `OutOfMemory`, `InvalidSpec`, `UnknownRegion`, `RegionFull`.
+
+## Function
+
+- `matches(pattern, name)`: test an input section name against a rule pattern.
+
+Patterns can be an exact name, a prefix followed by `*`, or a single `*` catch-all. Rules are checked in the order they were added, and the first match wins.
+
+## Example
+
+```zig
+var rules = sibl.rules.RuleSet.init(allocator);
+defer rules.deinit();
+
+try rules.addRegionSpec("FLASH=0x08000000:0x10000");
+try rules.addMoveSpec(".isr*=FLASH");
+try rules.addPinSpec(".vector=0x08000040");
+
+const placement = try rules.apply(&input_section);
+if (placement.address) |addr| {
+    try layout.pinOutput(".isr", addr);
+}
+```
+
+## Notes
+
+- A region fills in order with alignment until it runs out.
+- A full region returns `RegionFull`.
+- Put catch-all `*` rules last.
+- `--place PATTERN=DEST` moves matching sections into an output section. If `DEST` names a region, the sections are allocated inside that region.

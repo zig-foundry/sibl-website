@@ -1,0 +1,56 @@
+---
+.title = "alloc module",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# alloc module
+
+The `alloc` module provides memory allocation helpers for sibl. It keeps allocations explicit and groups bulk data in one arena.
+
+## Types
+
+### `LinkerAllocators`
+
+Central allocator wrapper used through all link phases.
+
+Fields:
+
+- `arena_state`: `std.heap.ArenaAllocator`
+- `base_allocator`: `std.mem.Allocator`
+
+Methods:
+
+- `init(base)`: create the wrapper from a backing allocator.
+- `deinit(self)`: free all arena memory.
+- `arena(self)`: return the fast arena allocator.
+- `gpa(self)`: return the base allocator for structures that need manual resizing.
+
+Use the arena for symbols, strings, and parsed object data. Use the base allocator when a structure must grow or be freed on its own.
+
+### `ScratchBuffer`
+
+A fixed 4 KB buffer for short-lived path and message formatting.
+
+- `buffer`: `[4096]u8`
+- `fixedBufferAllocator(self)`: return a `std.heap.FixedBufferAllocator` that draws from the buffer.
+
+## Example
+
+```zig
+var allocs = sibl.LinkerAllocators.init(std.testing.allocator);
+defer allocs.deinit();
+
+const arena = allocs.arena();
+const names = try arena.alloc([]const u8, 4);
+
+var scratch = sibl.ScratchBuffer{};
+var fba = scratch.fixedBufferAllocator();
+const msg = try std.fmt.allocPrint(fba.allocator(), "path: {s}", .{"/tmp/out"});
+```
+
+## Notes
+
+- The arena frees all memory in one call at the end.
+- Do not store arena slices after `deinit`.
+- The scratch buffer is only 4 KB, so use it for short strings.
