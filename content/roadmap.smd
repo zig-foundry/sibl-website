@@ -1,13 +1,24 @@
+---
+.title = "ROADMAP",
+.date = .date("2026-11-02T00:00:00"),
+.layout = "page.shtml",
+---
+
 # sibl (Something is Better Linker) - Roadmap
 
 A fast, lightweight, and zero-dependency static and dynamic linker written in Zig 0.17.0.
 
 ## Phase 1: Project Setup and CLI Core
-- [x] **1.1 Build Configuration:** Set up `build.zig` for Zig 0.17.0, target options, and release modes.
-- [x] **1.2 Memory Allocators:** Set up fast arena allocators and fixed scratch buffers using `std.mem.Allocator`.
-- [x] **1.3 CLI Argument Parser:** Parse common linker flags like `-o`, `-L`, `-l`, `-shared`, and target options.
-- [x] **1.4 Target Detection:** Detect host and target CPU architectures and default binary formats (ELF, PE, Mach-O).
-- [x] **1.5 File Reader and Memory Mapping:** Open files and map them into memory with OS handles for zero-copy reads.
+[x] **1.1 Build Configuration:** Set up `build.zig` for Zig 0.17.0, target options, and release modes.
+
+[x] **1.2 Memory Allocators:** Set up fast arena allocators and fixed scratch buffers using `std.mem.Allocator`.
+
+[x] **1.3 CLI Argument Parser:** Parse common linker flags like `-o`, `-L`, `-l`, `-shared`, and target options.
+
+[x] **1.4 Target Detection:** Detect host and target CPU architectures and default binary formats (ELF, PE, Mach-O).
+
+[x] **1.5 File Reader and Memory Mapping:** Open files and map them into memory with OS handles for zero-copy reads.
+
 
 ## Phase 2: ELF Object Parsing
 - [x] **2.1 Header Parsing:** Read 32-bit and 64-bit ELF headers and verify magic bytes.
