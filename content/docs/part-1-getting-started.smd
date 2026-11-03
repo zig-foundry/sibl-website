@@ -232,6 +232,17 @@ src/
 └── main.zig           Linker executable entry point
 ```
 
+## Environment variables
+
+sibl does not read environment variables. All settings come from command-line flags and input files.
+
+## Exit codes
+
+sibl uses two exit codes.
+
+- `0`: the inspection pass finished.
+- `1`: an error stopped the run, such as a missing input, a parse error, an unresolved symbol, or an invalid flag.
+
 ## Common problems
 
 ### `no input files provided`

@@ -129,6 +129,14 @@ Methods:
 - `characteristics`: COFF file characteristic flags.
 - `section_flags`: COFF section characteristic flags.
 
+## File characteristic constants
+
+`sibl.coff_characteristics` contains COFF file characteristic flags. These include `RELOCS_STRIPPED`, `EXECUTABLE_IMAGE`, `LINE_NUMS_STRIPPED`, `LOCAL_SYMS_STRIPPED`, `LARGE_ADDRESS_AWARE`, `BIT32_MACHINE`, `DEBUG_STRIPPED`, `DLL`, and others defined in `src/coff.zig`.
+
+## Section flag constants
+
+`sibl.coff_section_flags` contains COFF section characteristic flags. These include `CNT_CODE`, `CNT_INITIALIZED_DATA`, `CNT_UNINITIALIZED_DATA`, `MEM_EXECUTE`, `MEM_READ`, `MEM_WRITE`, `LNK_COMDAT`, `LNK_REMOVE`, `LNK_NRELOC_OVFL`, and others defined in `src/coff.zig`.
+
 ## Error sets
 
 - `Error`

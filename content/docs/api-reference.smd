@@ -8,6 +8,7 @@
 
 This page is the entry point for the sibl library API. sibl is a Zig package. You import it with `@import("sibl")`. The root module re-exports every public type and function from `src/root.zig`.
 
+Every public type, function, constant group, and error set is documented on the module pages below. If a name is missing, check `src/root.zig` and the source comments, which are the most accurate reference.
 ## How to import sibl
 
 Add sibl as a dependency in your `build.zig.zon`, then import the module:
@@ -65,6 +66,54 @@ A typical link pass uses these steps:
 ## Error handling
 
 Most functions return an error union. sibl uses Zig error sets. You can use `try` and let the error move up, or handle it with a `switch`. The main executable shows this pattern.
+
+## Complete library example
+
+This example shows the main pieces in one place. It does not emit a binary, but it builds the full link plan.
+
+```zig
+const std = @import("std");
+const sibl = @import("sibl");
+
+pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var allocs = sibl.LinkerAllocators.init(allocator);
+    defer allocs.deinit();
+
+    const arena = allocs.arena();
+
+    const raw_args = [_][]const u8{ "sibl", "hello.o" };
+    var options = try sibl.parseArgs(arena, &raw_args);
+    defer options.deinit(arena);
+
+    const target_info = sibl.TargetInfo.detect(options);
+    const bare_metal = options.region_specs.items.len > 0;
+    const tmpl = sibl.templateForTarget(target_info, bare_metal);
+
+    var symtab = sibl.SymbolTable.init(arena);
+    defer symtab.deinit();
+
+    var layout = sibl.Layout.init(arena, tmpl.base_address, tmpl.page_size);
+    defer layout.deinit();
+    sibl.applyTemplateBase(&layout, tmpl);
+
+    // Open and parse inputs here, then add symbols and sections.
+    // See the module pages for elf, coff, macho, and archive parsing.
+
+    layout.computeAddresses();
+    try layout.buildSegments();
+    var report = try layout.accountSizes();
+    defer layout.freeSizeReport(report);
+
+    const entry_point = try sibl.resolveEntry(&symtab, &layout, tmpl.default_entry);
+    std.debug.print("entry: 0x{x}\n", .{entry_point.address});
+
+    _ = try symtab.checkResolved();
+}
+```
 
 ## Memory management
 

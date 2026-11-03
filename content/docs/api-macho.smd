@@ -141,6 +141,18 @@ Mach-O relocation entry.
 - `nlist_masks`, `nlist_type`, `nlist_desc`: symbol entry masks and flags.
 - `reloc_constants`: relocation constants such as `R_SCATTERED`.
 
+## Constant groups
+
+`sibl.macho_flags` contains Mach-O header flags such as `NOUNDEFS`, `DYLDLINK`, `PIE`, `WEAK_DEFINES`, and others.
+
+`sibl.macho_vm_prot` contains protection constants: `NONE`, `READ`, `WRITE`, and `EXECUTE`.
+
+`sibl.macho_section_attributes` contains section attribute constants such as `PURE_INSTRUCTIONS`, `NO_DEAD_STRIP`, `DEBUG_INFO`, and `EXT_RELOC`.
+
+`sibl.macho_nlist_masks`, `sibl.macho_nlist_type`, and `sibl.macho_nlist_desc` contain symbol entry masks and flags.
+
+`sibl.macho_reloc_constants` contains relocation constants such as `R_SCATTERED`.
+
 ## Error sets
 
 - `Error`

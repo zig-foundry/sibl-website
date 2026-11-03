@@ -117,6 +117,21 @@ ELF section flag constants.
 
 Constants include `WRITE`, `ALLOC`, `EXECINSTR`, `MERGE`, `STRINGS`, `INFO_LINK`, `LINK_ORDER`, `OS_NONCONFORMING`, `GROUP`, and `TLS`.
 
+## Flag constants
+
+`sibl.elf.flags` contains these section flag constants:
+
+- `WRITE = 1 << 0`
+- `ALLOC = 1 << 1`
+- `EXECINSTR = 1 << 2`
+- `MERGE = 1 << 4`
+- `STRINGS = 1 << 5`
+- `INFO_LINK = 1 << 6`
+- `LINK_ORDER = 1 << 7`
+- `OS_NONCONFORMING = 1 << 8`
+- `GROUP = 1 << 9`
+- `TLS = 1 << 10`
+
 ## Error sets
 
 - `HeaderError`

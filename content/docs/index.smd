@@ -43,6 +43,28 @@ The API reference documents every public module that sibl exposes. Each page sho
 
 sibl has no external dependencies. The whole project builds with the Zig standard library.
 
+## Most accurate reference
+
+This website summarizes the public API. The source code comments are the most accurate reference. To read them as HTML, clone the repository and run:
+
+```sh
+git clone https://github.com/zig-foundry/sibl.git
+cd sibl
+zig build-lib src/root.zig -femit-docs
+```
+
+Then open the generated `docs/index.html` in your browser.
+
+To build this website locally, run:
+
+```sh
+git clone https://github.com/zig-foundry/sibl-website.git
+cd sibl-website
+zine release -f
+```
+
+The output goes to `public/`.
+
 ## Current status
 
 Phases 1 to 9 are done and tested. sibl can parse ELF, PE/COFF, Mach-O, and static archives. It can resolve symbols, lay out sections and segments, apply relocations, resolve an entry point, use placement rules, define symbols with `--defsym`, and apply a default layout template.
