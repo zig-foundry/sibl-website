@@ -44,15 +44,10 @@
   font-weight: 400; font-style: normal; font-display: swap;
 }
 
-/* ===== Base - zine serif, not modern app ===== */
+/* ===== Base ===== */
 *, *::before, *::after { box-sizing: border-box; }
 
-:root {
-  font-size: 16px;
-  color-scheme: dark;
-  scrollbar-color: #555 #222;
-}
-
+:root { font-size: 16px; color-scheme: dark; scrollbar-color: #555 #222; }
 html { overflow-y: scroll; -webkit-text-size-adjust: 100%; }
 
 body {
@@ -78,7 +73,6 @@ h1,h2,h3 {
 }
 h1 { font-size: clamp(3rem, 11vw, 4.8rem); }
 h2 { font-size: clamp(1.7rem, 5.5vw, 2.4rem); }
-
 h4 { color: #eee; font-family: 'Merriweather', serif; }
 b,strong { color: #eee; }
 a { color: #ccc; font-weight: 700; text-underline-offset: 3px; }
@@ -89,30 +83,86 @@ p { line-height: 1.7; margin: 0.85em 0; }
   width: 100%;
   max-width: 780px;
   margin: 0 auto;
-  padding: 0 22px; /* unified side padding */
+  padding: 0 22px;
 }
-
 .centered { text-align: center; margin-left: auto; margin-right: auto; }
 
+/* ===== ABSOLUTE ZERO RADIUS - everything ===== */
+pre, code, .block, .block.padded, .warning, table, th, td,
+.site-footer, .feature-card, details, summary,
+.badge, .badge-phases, .hero .badge,
+input, textarea, select, button,
+img, video {
+  border-radius: 0 !important;
+}
+
+/* Force any inline radius to 0 */
+* {
+  border-radius: 0 !important;
+}
+
+/* Re-allow ONLY hero buttons to be rounded - this must come AFTER the global reset */
+.hero-actions a,
+.hero-buttons a,
+.cta-group a,
+.actions a,
+a.btn,
+.btn-primary,
+.btn-secondary {
+  border-radius: 999px !important;
+}
+
+/* Pseudo elements for liquid glass also need rounding */
+.hero-actions a::before,
+.hero-actions a::after,
+.hero-buttons a::before,
+.hero-buttons a::after {
+  border-radius: 999px !important;
+}
+
+/* ===== Blocks - dotted/dashed ===== */
 pre {
   overflow: auto;
   background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 6px;
+  border: 1px dashed #333;
   padding: 0.85rem 1rem;
   margin: 1rem 0;
+  position: relative;
+  max-width: 100%;
 }
-code {
-  font-family: 'Cascadia Code', ui-monospace, Menlo, Consolas, monospace;
-  font-size: 0.9em;
-}
+code { font-family: 'Cascadia Code', ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em; }
 p>code, li>code { color: #ddd; font-weight: 700; }
+
+.block { border: 1px dashed #555; background: transparent; margin: 1rem 0; }
+.block.padded { margin: 10px; border: 1px dashed #666; background: #161616; }
+.block h1 {
+  font-size: 1.17em !important;
+  margin: 0 !important;
+  text-align: left;
+  padding: 6px 15px !important;
+  border: 1px dashed #CCC;
+  color: #111;
+  background-color: #CCC;
+}
+.warning { border: 1px dashed #f7a41d !important; background: rgba(247,164,29,0.04); }
+.warning h1 { border: 1px dashed #f7a41d !important; background-color: #f7a41d !important; color: #111 !important; }
+.important { color: #F8FA90; border: 1px dotted #F8FA90; padding: 0.5rem; background: rgba(248,250,144,0.05); }
+details.block { border: 1px dashed #444; }
+.block > details.block { margin: 15px; border: 1px dotted #444; }
+.block p { padding-top: 0; font-size: 0.9em; padding-left: 15px; padding-right: 15px; }
+.nopara p { padding: 0; margin: 0; margin-bottom: -5px; }
+li { padding: 3px 0; }
+
+table { width: 100%; border-collapse: collapse; border: 1px dashed #333; }
+table th { border-bottom: 1px dashed #444; text-align: left; padding: 0.5rem; }
+table td { padding: 0.5rem; border-bottom: 1px dashed #222; }
+img, video { margin: 0; max-width: 100%; height: auto; display: block; }
 
 .site-footer {
   text-align: center;
   padding: 1.6rem 22px 2rem;
   margin-top: 3rem;
-  border-top: 1px solid #222;
+  border-top: 1px dashed #222;
   color: #666;
   font-size: 0.88rem;
   font-family: 'Merriweather', serif;
@@ -120,21 +170,18 @@ p>code, li>code { color: #ddd; font-weight: 700; }
 .site-footer a { color: #aaa; font-weight: 400; }
 .site-footer a:hover { color: #f7a41d; }
 
-/* ===== NAVIGATION - fixed alignment ===== */
-/* Keeps your 2x2 zine style on mobile, single row on desktop, all centered */
+/* ===== NAVIGATION ===== */
 nav#menu {
   width: 100%;
-  max-width: 780px; /* same as #content for alignment */
+  max-width: 780px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.9rem;
-  padding: 1.1rem 22px 0.2rem; /* 22px matches content */
+  padding: 1.1rem 22px 0.2rem;
 }
-
-/* Each row: Home • Documentation */
 nav#menu .nav-row {
   display: flex;
   flex-direction: row;
@@ -143,7 +190,6 @@ nav#menu .nav-row {
   gap: 0.75rem;
   flex-wrap: nowrap;
 }
-
 nav#menu a {
   color: #eaeaea;
   text-decoration: underline;
@@ -155,53 +201,27 @@ nav#menu a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
   font-family: 'Merriweather', serif;
   font-weight: 700;
   font-size: 1.05rem;
-  letter-spacing: -0.01em;
 }
-
-nav#menu a:hover {
-  color: #f7a41d;
-  text-decoration-color: #f7a41d;
-}
-
-nav#menu .sep {
-  color: #555;
-  user-select: none;
-  font-size: 0.85rem;
-  line-height: 1;
-  transform: translateY(1px);
-}
-
-/* The dashed separator - now centered and short, not full-width */
+nav#menu a:hover { color: #f7a41d; text-decoration-color: #f7a41d; }
+nav#menu .sep { color: #555; user-select: none; font-size: 0.85rem; transform: translateY(1px); }
 nav#menu::after {
   content: "";
   display: block;
   width: min(520px, 72%);
-  max-width: 100%;
   height: 1px;
   border-top: 1px dashed #2e2e2e;
   margin-top: 0.75rem;
   margin-bottom: 0.2rem;
 }
-
 @media (min-width: 720px) {
-  nav#menu {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.4rem 1.1rem;
-    padding: 1.2rem 22px 0.4rem;
-  }
-  nav#menu::after {
-    width: min(560px, 78%);
-    margin-top: 0.9rem;
-    flex-basis: 100%;
-  }
+  nav#menu { flex-direction: row; flex-wrap: wrap; gap: 0.4rem 1.1rem; padding: 1.2rem 22px 0.4rem; }
+  nav#menu::after { width: min(560px, 78%); margin-top: 0.9rem; flex-basis: 100%; }
 }
 
-/* ===== HERO - serif feel, alignment fix ===== */
+/* ===== HERO ===== */
 .hero {
   width: 100%;
   max-width: 780px;
@@ -210,29 +230,41 @@ nav#menu::after {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 0.6rem 22px 1.2rem; /* 22px = content padding = nav padding */
+  padding: 0.6rem 22px 1.8rem;
+  position: relative;
+  isolation: isolate;
 }
 
-/* Phases pill - tightened */
+/* Ambient orbs behind hero to make refraction visible - key for Liquid Glass */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -20px 0 0 0;
+  z-index: -1;
+  background:
+    radial-gradient(420px 220px at 25% 35%, rgba(247,164,29,0.22), transparent 65%),
+    radial-gradient(380px 280px at 78% 65%, rgba(255,255,255,0.09), transparent 60%),
+    radial-gradient(500px 300px at 50% 10%, rgba(247,164,29,0.12), transparent 70%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
 .hero .badge,
-.badge-phases,
-div:has(> .phases) .badge {
+.badge-phases {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.95rem;
-  border: 1px solid #c8871a;
+  border: 1px dashed #c8871a;
   color: #e0a02a;
-  border-radius: 999px;
   font-size: 0.88rem;
   font-family: 'Merriweather', serif;
-  font-weight: 400;
-  letter-spacing: 0.01em;
   background: rgba(247,164,29,0.06);
   margin: 1.1rem 0 1.4rem;
 }
 
-/* HERO BUTTONS - no overlap, no edge-to-edge, zine flat */
+/* ===== HERO BUTTONS - REAL APPLE LIQUID GLASS ===== */
+/* Spec from https://dev.to/vitalbadjo/liquid-glass-css-the-apple-liquid-glass-effect-with-css-only-plus-svg-refraction-1hkd */
 .hero-actions,
 .hero-buttons,
 .cta-group,
@@ -241,100 +273,198 @@ div:has(> .phases) .badge {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 16px;
   width: 100%;
-  max-width: 380px; /* keeps buttons from touching screen edge */
-  margin: 1.6rem auto 0;
+  max-width: 420px;
+  margin: 1.8rem auto 0;
+  position: relative;
+  z-index: 1;
 }
 
+/* Base liquid glass - 5 layers */
 .hero-actions a,
 .hero-buttons a,
 .cta-group a,
 .actions a,
 a.btn {
   position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5em;
+  gap: 0.6em;
   width: 100%;
-  min-height: 50px;
-  padding: 0 1.2rem;
-  border-radius: 8px; /* less modern, more zine */
+  min-height: 56px;
+  padding: 0 1.7rem;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.22rem;
-  letter-spacing: 0.06em;
+  font-size: 1.26rem;
+  letter-spacing: 0.07em;
   text-decoration: none !important;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
+  overflow: hidden;
+
+  /* Tint + blur + saturation + brightness - layer 1,2 */
+  -webkit-backdrop-filter: blur(12px) saturate(180%) brightness(1.12);
+  backdrop-filter: blur(12px) saturate(180%) brightness(1.12);
+
+  /* Specular rim - layer 3 */
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow:
+    0 10px 36px rgba(0,0,0,0.32),
+    0 2px 8px rgba(0,0,0,0.28),
+    inset 0 1px 1px rgba(255,255,255,0.65),
+    inset 0 -1px 1px rgba(255,255,255,0.28),
+    inset 1px 0 1px rgba(255,255,255,0.22),
+    inset -1px 0 1px rgba(255,255,255,0.18);
+
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              box-shadow 0.28s ease,
+              background 0.28s ease,
+              border-color 0.28s ease;
 }
 
-/* Primary - flat, no glow for serif feel */
+/* Sheen - diagonal gloss - layer 4 */
+.hero-actions a::before,
+.hero-buttons a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,0.52) 0%,
+    rgba(255,255,255,0.14) 28%,
+    rgba(255,255,255,0.04) 42%,
+    transparent 58%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.95;
+}
+
+/* Inner liquid highlight that follows light */
+.hero-actions a::after,
+.hero-buttons a::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 55%);
+  opacity: 0.9;
+}
+
+/* Chrome-only real refraction - layer 5 */
+@supports (backdrop-filter: url('#liquid')) {
+  .hero-actions a,
+  .hero-buttons a {
+    backdrop-filter: blur(8px) saturate(180%) brightness(1.12) url('#liquid-glass-filter');
+    -webkit-backdrop-filter: blur(8px) saturate(180%) brightness(1.12) url('#liquid-glass-filter');
+  }
+}
+
+/* Orange Liquid Glass - tinted material */
 .btn-primary,
 .hero-actions a:first-child,
 .hero-buttons a:first-child {
-  background: #f7a41d;
+  background: rgba(247,164,29,0.72);
+  background: linear-gradient(180deg, rgba(247,164,29,0.86) 0%, rgba(247,164,29,0.64) 100%);
   color: #111;
-  border: 1.5px solid #f7a41d;
-  font-weight: 400;
-}
-.btn-primary:hover,
-.hero-actions a:first-child:hover {
-  background: #ffaf26;
-  border-color: #ffaf26;
-  color: #111;
+  border-color: rgba(255,255,255,0.42);
+  text-shadow: 0 0.5px 0 rgba(255,255,255,0.5);
+  box-shadow:
+    0 10px 28px rgba(247,164,29,0.34),
+    0 3px 10px rgba(0,0,0,0.32),
+    inset 0 1px 1px rgba(255,255,255,0.85),
+    inset 0 -1px 1px rgba(0,0,0,0.12),
+    inset 1px 0 1px rgba(255,255,255,0.4),
+    inset -1px 0 1px rgba(255,255,255,0.24);
 }
 
-/* Secondary - ink on paper feel */
+.btn-primary:hover,
+.hero-actions a:first-child:hover {
+  background: linear-gradient(180deg, rgba(255,178,46,0.92) 0%, rgba(247,164,29,0.74) 100%);
+  transform: translateY(-1px) scale(1.015);
+  box-shadow:
+    0 14px 36px rgba(247,164,29,0.42),
+    0 4px 12px rgba(0,0,0,0.35),
+    inset 0 1px 1px rgba(255,255,255,0.9),
+    inset 0 -1px 1px rgba(0,0,0,0.1);
+}
+
+/* Dark Liquid Glass - graphite */
 .btn-secondary,
 .hero-actions a:last-child,
 .hero-buttons a:last-child {
-  background: #161616;
-  color: #e6e6e6;
-  border: 1.5px solid #333;
-  font-weight: 400;
-}
-.btn-secondary:hover,
-.hero-actions a:last-child:hover {
-  background: #1e1e1e;
-  border-color: #4a4a4a;
-  color: #fff;
+  background: rgba(255,255,255,0.09);
+  background: linear-gradient(180deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.05) 100%);
+  color: #f1f1f1;
+  border-color: rgba(255,255,255,0.16);
 }
 
-/* Desktop: side by side, centered */
+.btn-secondary:hover,
+.hero-actions a:last-child:hover {
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 100%);
+  border-color: rgba(255,255,255,0.24);
+  color: #fff;
+  transform: translateY(-1px) scale(1.015);
+  box-shadow:
+    0 12px 32px rgba(0,0,0,0.45),
+    0 3px 10px rgba(0,0,0,0.4),
+    inset 0 1px 1px rgba(255,255,255,0.32),
+    inset 0 -1px 1px rgba(255,255,255,0.14);
+}
+
+.hero-actions a:active,
+.hero-buttons a:active {
+  transform: translateY(0) scale(0.985);
+}
+
+/* Text above glass */
+.hero-actions a > *,
+.hero-buttons a > * {
+  position: relative;
+  z-index: 3;
+}
+
 @media (min-width: 520px) {
-  .hero-actions,
-  .hero-buttons,
-  .cta-group {
+  .hero-actions, .hero-buttons, .cta-group {
     flex-direction: row;
     max-width: 100%;
     width: auto;
-    gap: 12px;
+    gap: 16px;
   }
-  .hero-actions a,
-  .hero-buttons a {
+  .hero-actions a, .hero-buttons a {
     width: auto;
-    min-width: 200px;
-    max-width: 280px;
+    min-width: 220px;
+    max-width: 320px;
   }
 }
-
-/* Very small phones: ensure breathing room */
 @media (max-width: 380px) {
   .hero-actions { max-width: calc(100vw - 44px); }
-  nav#menu { padding-left: 16px; padding-right: 16px; }
-  #content, .hero, .site-footer { padding-left: 16px; padding-right: 16px; }
 }
 
-/* Feature cards - align with same padding */
+/* Feature cards - zero radius + dashed */
 .feature-card,
-div[class*="ZERO"], div[class*="CROSS"] {
-  width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  border: 1px solid #262626;
-  background: #151515;
-  border-radius: 10px;
+.hero + div,
+[class*="zero-copy"],
+[class*="cross-platform"] {
+  border: 1px dashed #2e2e2e !important;
+  background: #151515 !important;
+}
+
+/* Reduced transparency */
+@media (prefers-reduced-transparency: reduce) {
+  .hero-actions a,
+  .hero-buttons a {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(40,40,40,0.92) !important;
+  }
+  .btn-primary {
+    background: #f7a41d !important;
+  }
 }

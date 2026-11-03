@@ -1,38 +1,55 @@
 <!DOCTYPE html>
 <html>
-	<head id="head">
-		<meta charset="UTF-8">
-		<meta name="description" content="SIBL – Something is Better Linker. A fast, lightweight, zero-dependency static and dynamic linker written in Zig.">
-		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, shrink-to-fit=no">
-		<title id="title">
-			<super>
-			- SIBL
-		</title>
-		<link rel="stylesheet" type="text/css" href="$site.asset('fonts.css').link()">
-		<link rel="stylesheet" type="text/css" href="$site.asset('style.css').link()">
-		<link rel="stylesheet" type="text/css" href="$site.asset('highlight.css').link()">
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
-		<super>
-	</head>
-	<body>
-		<nav id="menu" class="centered">
-			<div class="nav-row">
-				<a href="/">Home</a>
-				<span class="sep">•</span>
-				<a href="$site.page('getting-started').link()">Documentation</a>
-			</div>
-			<div class="nav-row">
-				<a href="https://github.com/zig-foundry/sibl" target="_blank">GitHub</a>
-				<span class="sep">•</span>
-				<a href="https://github.com/zig-foundry/sibl/blob/main/ROADMAP.md" target="_blank">Roadmap</a>
-			</div>
-		</nav>
-		<div id="content">
-			<super>
-		</div>
-		<footer class="site-footer">
-			<p>SIBL • Zig 0.17 • Open source</p>
-			<p><a href="https://github.com/zig-foundry/sibl" target="_blank"><i class="fa-brands fa-github"></i> View on GitHub</a></p>
-		</footer>
-	</body>
+        <head id="head">
+                <meta charset="UTF-8">
+                <meta name="description" content="SIBL – Something is Better Linker. A fast, lightweight, zero-dependency static and dynamic linker written in Zig.">
+                <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, shrink-to-fit=no">
+                <title id="title">
+                        <super>
+                        - SIBL
+                </title>
+                <link rel="stylesheet" type="text/css" href="$site.asset('fonts.css').link()">
+                <link rel="stylesheet" type="text/css" href="$site.asset('style.css').link()">
+                <link rel="stylesheet" type="text/css" href="$site.asset('highlight.css').link()">
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
+                <super>
+        </head>
+        <body>
+                <nav id="menu" class="centered">
+                        <div class="nav-row">
+                                <a href="/">Home</a>
+                                <span class="sep">•</span>
+                                <a href="$site.page('getting-started').link()">Documentation</a>
+                        </div>
+                        <div class="nav-row">
+                                <a href="https://github.com/zig-foundry/sibl" target="_blank">GitHub</a>
+                                <span class="sep">•</span>
+                                <a href="https://github.com/zig-foundry/sibl/blob/main/ROADMAP.md" target="_blank">Roadmap</a>
+                        </div>
+                </nav>
+                <div id="content">
+                        <super>
+                </div>
+                <footer class="site-footer">
+                        <p>SIBL • Zig 0.17 • Open source</p>
+                        <p><a href="https://github.com/zig-foundry/sibl" target="_blank"><i class="fa-brands fa-github"></i> View on GitHub</a></p>
+                </footer>
+
+                <!-- REAL LIQUID GLASS REFRACTION FILTER - enables bending like iOS 26 (Chrome/Edge only) -->
+                <!-- Place once, hidden. CSS auto-uses it via @supports (backdrop-filter: url(#liquid-glass-filter)) -->
+                <svg width="0" height="0" aria-hidden="true" style="position:absolute; overflow:hidden;">
+                  <filter id="liquid-glass-filter" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="2" seed="9" result="noise" />
+                    <feGaussianBlur in="noise" stdDeviation="1.4" result="softNoise" />
+                    <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="28" xChannelSelector="R" yChannelSelector="G" result="displaced" />
+                  </filter>
+                  <!-- Optional: stronger lens effect for hero buttons (uncomment to use) -->
+                  <!--
+                  <filter id="liquid-glass-lens" x="0%" y="0%" width="100%" height="100%">
+                    <feImage href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='80'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23808080'/%3E%3Cstop offset='100%25' stop-color='%23ff8080'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" preserveAspectRatio="none" result="lensMap" />
+                    <feDisplacementMap in="SourceGraphic" in2="lensMap" scale="32" xChannelSelector="R" yChannelSelector="G" />
+                  </filter>
+                  -->
+                </svg>
+        </body>
 </html>
