@@ -1,0 +1,259 @@
+---
+.title = "Part 1: Getting Started",
+.date = .date("2026-11-03T00:00:00"),
+.layout = "docs.shtml",
+.aliases = ["/getting-started/index.html"],
+---
+
+# Part 1: Getting Started
+
+sibl is a static and dynamic linker written in Zig 0.17.0. It has no external dependencies. It reads ELF, PE/COFF, Mach-O, and static archives. After that, it resolves symbols, groups sections, builds segments, and applies relocations.
+
+># [Important]($block.attrs('warning'))
+>sibl does not write a runnable binary yet. Phases 1 to 9 are ready, and binary emission is Phase 13. For now, the `sibl` command is an inspection pass. It shows what the linker found and how it plans the output.
+
+## What you need
+
+- Zig 0.17.0
+- Git, if you clone the source
+
+The project uses only the Zig standard library, so you do not need to install extra packages.
+
+## Build from source
+
+First, clone the repository and move into it:
+
+```sh
+git clone https://github.com/zig-foundry/sibl.git
+cd sibl
+```
+
+Then build the executable:
+
+```sh
+zig build
+```
+
+The binary lands in `zig-out/bin/sibl`. You can also run it through the build system:
+
+```sh
+zig build run -- --help
+```
+
+Before you change code, run the full test suite:
+
+```sh
+zig build test
+```
+
+## Your first run
+
+Make a small object file, then pass it to sibl. Because sibl does not write output yet, this step only prints the inspection report.
+
+```sh
+mkdir sibl-demo
+cd sibl-demo
+
+cat > hello.zig <<'EOF'
+export fn _start() void {}
+EOF
+
+zig build-obj hello.zig -femit-bin=hello.o
+/path/to/sibl/zig-out/bin/sibl hello.o
+```
+
+Replace `/path/to/sibl` with the directory where you built sibl. The report starts like this:
+
+```
+sibl configuration:
+  Target Arch   : x86_64 (64-bit, little)
+  Binary Format : elf
+  Layout Template: linux-elf (base=0x400000, page=4096)
+  Page Size     : 4096 bytes
+  Output File   : a.out
+  Entry Point   : _start
+  Shared Mode   : false
+```
+
+The report ends with the resolved entry point:
+
+```
+  Entry Point '_start':
+    Address       : 0x401000
+    Section       : .text
+    Executable    : true
+```
+
+If your object exports `main` instead of `_start`, pass the entry name with `-e`:
+
+```sh
+zig build-obj hello.zig -femit-bin=hello.o
+/path/to/sibl/zig-out/bin/sibl -e main hello.o
+```
+
+Without `-e main`, sibl tries `_start` and exits with `EntrySymbolNotFound`. This is normal because the default entry name for Linux ELF is `_start`.
+
+## Read the report
+
+The report has several blocks. Each block shows one stage of the link plan.
+
+| Block | What it shows |
+| --- | --- |
+| Configuration | Target architecture, binary format, layout template, output name, and entry name. |
+| Input files | Parsed headers, sections, symbols, and relocations for each input. |
+| Resolved symbols | Defined and undefined symbols, binding, visibility, and value. |
+| Boundary symbols | Start and end markers such as `etext`, `edata`, and `end`. |
+| Section layout | Merged output sections, virtual addresses, file offsets, sizes, and flags. |
+| Segments | Loadable groups with `filesz`, `memsz`, and permission flags. |
+| Entry point | Final virtual address of the entry symbol. |
+
+Symbols marked with `*` are exportable. The program prints up to 32 symbols, then a count of the rest.
+
+## Command-line flags
+
+| Flag | Meaning |
+| --- | --- |
+| `-o <file>`, `--output <file>` | Set the output file name. The default is `a.out`, or `a.exe` for PE. |
+| `-e <symbol>`, `--entry <symbol>`, `--entry=<symbol>` | Set the entry symbol. The default is `_start`. |
+| `-m <emulation>` | Set the emulation, for example `elf_x86_64`, `elf_aarch64`, `elf64lriscv`, or `i386pep`. |
+| `-L <dir>`, `-L<dir>` | Add a library search directory. The parser stores it for later phases. |
+| `-l <name>`, `-l<name>` | Add a library name. The parser stores it for later phases. |
+| `-shared`, `--shared` | Build a shared library. This also relaxes the undefined-symbol and entry checks. |
+| `-static`, `--static` | Request a static link. The flag is reserved for later phases. |
+| `-s`, `--strip-all` | Remove all symbols from the output. The flag is reserved for the emission phase. |
+| `-S`, `--strip-debug` | Remove debug sections from the output. The flag is reserved for the emission phase. |
+| `--format <fmt>` | Set the output format: `auto`, `elf`, `coff`, or `macho`. |
+| `--region N=A:Z` | Define a memory region with name, address, and size. |
+| `--place P=D` | Move matching sections into an output section or a region. |
+| `--pin S=A` | Pin an output section at an exact virtual address. |
+| `--defsym SYM=EXPR` | Define an absolute symbol. |
+| `--` | Stop option parsing. Every later argument is an input file. |
+| `-h`, `--help` | Print the help text. |
+
+Some flags do not change files on disk yet. sibl accepts them now, but the writer stages that use them are still in the roadmap.
+
+## Placement rules
+
+Placement rules help with embedded maps or custom memory layouts. You can define regions, move sections into them, and pin a section at an exact address:
+
+```sh
+/path/to/sibl/zig-out/bin/sibl \
+  --region FLASH=0x08000000:0x10000 \
+  --region RAM=0x20000000:0x8000 \
+  --place '.isr*=FLASH' \
+  --pin '.vector=0x08000040' \
+  crt.o main.o driver.o
+```
+
+- `--place PATTERN=DEST` moves matching sections into an output section. If `DEST` names a region, the sections are allocated inside that region.
+- `--pin PATTERN=ADDR` sets the virtual address of the holding output section.
+- `--region NAME=ADDR:SIZE` defines a region. Sections fill it in order, with alignment, until the region is full.
+
+The first matching rule wins. Put catch-all `*` rules last.
+
+## Define symbols
+
+`--defsym` adds absolute symbols after sibl collects input symbols:
+
+```sh
+/path/to/sibl/zig-out/bin/sibl --defsym VERSION=0x100 --defsym BUILD=4096 main.o
+
+/path/to/sibl/zig-out/bin/sibl --defsym ENTRY=main+0x10 --defsym LIMIT=ENTRY-4 main.o
+```
+
+An expression can be a hex or decimal constant, an existing symbol, or a `+` / `-` combination. Do not put spaces in the expression. Later specs can use symbols from earlier specs. A second strong definition of the same name stops the link with an error.
+
+## Default layout templates
+
+When you do not pin a custom base, sibl picks a built-in template:
+
+| Target | Base address | Default entry | Output |
+| --- | --- | --- | --- |
+| Linux ELF | `0x400000` | `_start` | `a.out` |
+| Windows PE 64 | `0x140000000` | `mainCRTStartup` | `a.exe` |
+| Windows PE 32 | `0x400000` | `mainCRTStartup` | `a.exe` |
+| macOS Mach-O | `0x100000000` | `_main` | `a.out` |
+| Bare-metal | `0` | `_start` | `a.out` |
+
+sibl selects the bare-metal template when you pass any `--region` rule. After address assignment, the template adds these boundary symbols if the names are still free:
+
+- `__executable_start`
+- `etext` and `_etext`
+- `edata` and `_edata`
+- `__bss_start`
+- `end` and `_end`
+
+## Use sibl as a library
+
+Import the root module and use the exported types. The example below shows the main pieces:
+
+```zig
+const sibl = @import("sibl");
+
+var table = sibl.SymbolTable.init(allocator);
+defer table.deinit();
+
+var layout = sibl.Layout.init(allocator, 0x400000, 4096);
+defer layout.deinit();
+
+layout.computeAddresses();
+const entry_point = try sibl.resolveEntry(&table, &layout, "_start");
+```
+
+Add symbols and input sections before `computeAddresses()`. Public types are re-exported from `src/root.zig`.
+
+You can also generate HTML API docs:
+
+```sh
+zig build-lib src/root.zig -femit-docs
+```
+
+## Project layout
+
+```
+src/
+├── alloc.zig          Phase 1.2  — arena and scratch allocators
+├── args.zig           Phase 1.3  — CLI argument parser
+├── target.zig         Phase 1.4  — target detection and page size
+├── file.zig           Phase 1.5  — memory-mapped file reader
+├── elf.zig            Phase 2    — ELF parsing
+├── strtab.zig         Phase 2.4  — string table reader and builder
+├── coff.zig           Phase 3    — PE/COFF parsing
+├── macho.zig          Phase 4    — Mach-O parsing
+├── archive.zig        Phase 5    — static archive (.a / .lib) parsing
+├── symbol.zig         Phase 6    — global symbol table and resolution
+├── layout.zig         Phase 7    — section grouping, segments, size accounting
+├── reloc.zig          Phase 8    — relocation engine (x86_64, AArch64)
+├── entry.zig          Phase 9.1  — entry point resolution
+├── section_rules.zig  Phase 9.2  — placement rules and memory regions
+├── defsym.zig         Phase 9.3  — --defsym symbol assignment
+├── templates.zig      Phase 9.4  — default layout templates
+├── root.zig           Public re-exports
+└── main.zig           Linker executable entry point
+```
+
+## Common problems
+
+### `no input files provided`
+
+Pass at least one input file after the flags. sibl accepts object files, archives, and already linked binaries.
+
+### `cannot resolve entry point '_start'`
+
+Your input has no `_start` symbol. Use `-e <name>` to choose a different entry, or export `_start` from your source.
+
+### `unresolved symbols`
+
+sibl checks that every symbol is defined before it stops. Fix the missing definition, link the object that provides it, or pass `-shared` when you build a shared library.
+
+### No output file appears
+
+This is expected. The binary writer is Phase 13. The current command only prints the inspection report and the planned layout.
+
+### `invalid target format`
+
+Use one of `auto`, `elf`, `coff`, or `macho` after `--format`.
+
+## Next step
+
+Part 2 explains the core concepts behind the stages you just saw. It covers object formats, symbols, layout, relocations, and templates in more detail.

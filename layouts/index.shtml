@@ -89,7 +89,7 @@
                 A fast, lightweight, zero-dependency linker written in Zig.
         </p>
         <div class="hero-actions">
-                <a class="btn btn-primary" href="$site.page('getting-started').link()"><i class="fa-solid fa-rocket"></i> Get Started</a>
+                <a class="btn btn-primary" href="$site.page('docs', 'part-1-getting-started').link()"><i class="fa-solid fa-rocket"></i> Get Started</a>
                 <a class="btn btn-secondary" href="https://github.com/zig-foundry/sibl" target="_blank"><i class="fa-brands fa-github"></i> View on GitHub</a>
         </div>
 

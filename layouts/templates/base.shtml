@@ -19,7 +19,7 @@
                         <div class="nav-row">
                                 <a href="/">Home</a>
                                 <span class="sep">•</span>
-                                <a href="$site.page('getting-started').link()">Documentation</a>
+                                <a href="$site.page('docs').link()">Documentation</a>
                         </div>
                         <div class="nav-row">
                                 <a href="https://github.com/zig-foundry/sibl" target="_blank">GitHub</a>

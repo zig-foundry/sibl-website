@@ -1,0 +1,21 @@
+---
+.title = "Part 3: Inside sibl",
+.date = .date("2026-11-03T02:00:00"),
+.layout = "docs.shtml",
+---
+
+# Part 3: Inside sibl
+
+This part is in progress. It will go inside the source tree and follow one input file through the linker pipeline.
+
+## Planned topics
+
+- The role of each module in `src/`.
+- How zero-copy slices and arena allocation move through the pipeline.
+- How the parser feeds symbols and sections into the layout and relocation stages.
+- How the unit tests are organized and how to add a new test.
+- How to update the roadmap and send a clean change.
+
+## Until then
+
+Read [Part 1](/docs/part-1-getting-started) for the build steps and the project map. The [roadmap](/roadmap) lists the phases that are still open.

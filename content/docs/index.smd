@@ -1,0 +1,46 @@
+---
+.title = "Documentation",
+.date = .date("2026-11-02T00:00:00"),
+.layout = "docs.shtml",
+---
+
+# Documentation
+
+This guide explains sibl in three parts. Part 1 helps you build the project and run the inspection pass on your first object file. Part 2 explains the main ideas behind the linker. Part 3 goes inside the source tree and the test suite.
+
+If you are new to sibl, start with Part 1.
+
+## The three parts
+
+### Part 1: Getting Started
+
+Build sibl, run the test suite, and link your first object file. This part also covers the command-line flags, the output of the inspection pass, the built-in layout templates, and the library API.
+
+[Read Part 1: Getting Started](/docs/part-1-getting-started)
+
+### Part 2: Core Concepts
+
+This part is in progress. It will explain object formats, symbol resolution, section grouping, segment layout, relocations, entry points, placement rules, `--defsym`, and templates.
+
+[Read the Part 2 outline](/docs/part-2-core-concepts)
+
+### Part 3: Inside sibl
+
+This part is in progress. It will map the source modules, follow one file through the linker pipeline, and explain the test and contribution rules.
+
+[Read the Part 3 outline](/docs/part-3-internals)
+
+## What you need
+
+- Zig 0.17.0
+- Git, if you clone the source
+
+sibl has no external dependencies. The whole project builds with the Zig standard library.
+
+## Current status
+
+Phases 1 to 9 are done and tested. sibl can parse ELF, PE/COFF, Mach-O, and static archives. It can resolve symbols, lay out sections and segments, apply relocations, resolve an entry point, use placement rules, define symbols with `--defsym`, and apply a default layout template.
+
+Binary output is not ready yet. That work is Phase 13. For now, the `sibl` command inspects inputs and prints the planned layout. It does not write a runnable binary.
+
+[Check the roadmap](/roadmap)

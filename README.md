@@ -17,7 +17,9 @@ zine release -f
 ## Structure
 
 - `content/` — SuperMD pages
+- `content/docs/` — three-part documentation section
 - `layouts/` — SuperHTML templates
+- `layouts/docs.shtml` — docs layout with responsive sidebar and prev/next pager
 - `assets/` — CSS and Cascadia Code variable font
 - `zine.ziggy` — site configuration
 

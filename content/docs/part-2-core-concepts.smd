@@ -1,0 +1,22 @@
+---
+.title = "Part 2: Core Concepts",
+.date = .date("2026-11-03T01:00:00"),
+.layout = "docs.shtml",
+---
+
+# Part 2: Core Concepts
+
+This part is in progress. It will explain the main ideas behind the stages that sibl runs. For now, the outline below shows what it will cover.
+
+## Planned topics
+
+- How sibl detects and reads ELF, PE/COFF, Mach-O, and static archives.
+- How the global symbol table handles strong, weak, local, hidden, and protected symbols.
+- How section grouping and address layout produce output sections and segments.
+- How relocations work on x86_64 and AArch64, including range checks.
+- How sibl resolves entry points and applies default layout templates.
+- How `--place`, `--pin`, `--region`, and `--defsym` change the link plan.
+
+## Until then
+
+Part 1 shows how to build the project, run the inspection pass, and read the report. The [roadmap](/roadmap) shows the remaining phases, including dynamic linking and binary emission.
